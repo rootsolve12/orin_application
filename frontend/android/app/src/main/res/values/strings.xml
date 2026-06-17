@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Orin</string>
+    <string name="title_activity_main">Orin</string>
+    <string name="package_name">com.example.orin_application</string>
+    <string name="custom_url_scheme">com.example.orin_application</string>
+    <string name="server_client_id">228833758197-u9r4ljf911d0dh0mf58u2q9vss1l50t2.apps.googleusercontent.com</string>
+</resources>

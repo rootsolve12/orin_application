@@ -1,0 +1,12 @@
+{
+  "appId": "com.example.orin_application",
+  "appName": "Orin",
+  "webDir": "dist",
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "228833758197-u9r4ljf911d0dh0mf58u2q9vss1l50t2.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
+  }
+}

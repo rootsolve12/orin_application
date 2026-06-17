@@ -1,0 +1,25 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "orin-application",
+          "appId": "1:228833758197:android:9139ac4bb8faa968f76ebc",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "orin-application",
+          "configurations": {
+            "android": "1:228833758197:android:9139ac4bb8faa968f76ebc",
+            "web": "1:228833758197:web:ded0fe9ad1dc5abbf76ebc"
+          }
+        }
+      }
+    }
+  }
+}

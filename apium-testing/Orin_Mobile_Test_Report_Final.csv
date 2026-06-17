@@ -1,0 +1,106 @@
+Test_ID,Category,Test_Description,Status
+TC-1001,Authentication,Verify successful login with valid credentials,PASSED
+TC-1002,Authentication,Verify login failure with invalid password,PASSED
+TC-1003,Authentication,Verify login failure with unregistered email,PASSED
+TC-1004,Authentication,Verify 'Forgot Password' link redirects correctly,PASSED
+TC-1005,Authentication,Verify successful signup with new valid email,PASSED
+TC-1006,Authentication,Verify signup fails with already registered email,PASSED
+TC-1007,Authentication,Verify signup fails with weak password,PASSED
+TC-1008,Authentication,Verify signup fails with invalid email format,PASSED
+TC-1009,Authentication,Verify JWT token is stored securely after login,PASSED
+TC-1010,Authentication,Verify session persists after app restart,PASSED
+TC-1011,Authentication,Verify user can logout successfully,PASSED
+TC-1012,Authentication,Verify session terminates on logout,PASSED
+TC-1013,Authentication,Verify auto-login on valid token,PASSED
+TC-1014,Authentication,Verify redirection to login on expired token,PASSED
+TC-1015,Authentication,Verify input fields are sanitized against SQL injection,PASSED
+TC-1016,MissionControl_Workspace,Verify Team Workspace screen renders correctly,PASSED
+TC-1017,MissionControl_Workspace,Verify 'Create Team' successfully creates a new team,PASSED
+TC-1018,MissionControl_Workspace,Verify 'Join Team' successfully joins with valid invite code,PASSED
+TC-1019,MissionControl_Workspace,Verify 'Join Team' fails with invalid invite code,PASSED
+TC-1020,MissionControl_Workspace,Verify Kanban board renders Todo In-Progress Done columns,PASSED
+TC-1021,MissionControl_Workspace,Verify user can add a new task to Todo,PASSED
+TC-1022,MissionControl_Workspace,Verify task status changes on tap,PASSED
+TC-1023,MissionControl_Workspace,Verify task title is strikethrough when Done,PASSED
+TC-1024,MissionControl_Workspace,Verify user can add a new Quick Link with valid URL,PASSED
+TC-1025,MissionControl_Workspace,Verify Quick Link opens in external browser,PASSED
+TC-1026,MissionControl_Workspace,Verify Quick Link fails to save with invalid URL,PASSED
+TC-1027,MissionControl_Workspace,Verify Team Vault allows file upload dialog,PASSED
+TC-1028,MissionControl_Workspace,Verify Roster displays all current members,PASSED
+TC-1029,MissionControl_Workspace,Verify Team Leader badge is displayed for leader,PASSED
+TC-1030,MissionControl_Workspace,Verify leader can remove a member,PASSED
+TC-1031,MissionControl_Workspace,Verify non-leader cannot remove members,PASSED
+TC-1032,MissionControl_Workspace,Verify 'Leave Team' prompts confirmation,PASSED
+TC-1033,MissionControl_Workspace,Verify user successfully leaves team,PASSED
+TC-1034,MissionControl_Workspace,Verify Secure Video Call button triggers action,PASSED
+TC-1035,MissionControl_Workspace,Verify chat messages send and receive in real-time,PASSED
+TC-1036,EventManagement,Verify Event Feed loads events successfully,PASSED
+TC-1037,EventManagement,Verify Event Feed shows loading skeleton initially,PASSED
+TC-1038,EventManagement,Verify pull-to-refresh updates event list,PASSED
+TC-1039,EventManagement,Verify Event Card displays title date and location,PASSED
+TC-1040,EventManagement,Verify tapping Event Card opens Event Detail screen,PASSED
+TC-1041,EventManagement,Verify Event Detail screen displays full description,PASSED
+TC-1042,EventManagement,Verify 'Register' button successfully registers user,PASSED
+TC-1043,EventManagement,Verify 'Unregister' button successfully unregisters user,PASSED
+TC-1044,EventManagement,Verify user cannot register for full capacity event,PASSED
+TC-1045,EventManagement,Verify user cannot register for past event,PASSED
+TC-1046,EventManagement,Verify 'Create Event' form validates empty fields,PASSED
+TC-1047,EventManagement,Verify 'Create Event' succeeds with valid data,PASSED
+TC-1048,EventManagement,Verify date picker works correctly for event date,PASSED
+TC-1049,EventManagement,Verify time picker works correctly for event time,PASSED
+TC-1050,EventManagement,Verify image upload works for event banner,PASSED
+TC-1051,EventManagement,Verify event location integrates with Maps/Places API,PASSED
+TC-1052,EventManagement,Verify user can filter events by category,PASSED
+TC-1053,EventManagement,Verify user can search events by title,PASSED
+TC-1054,EventManagement,Verify search returns 'No results' for invalid query,PASSED
+TC-1055,EventManagement,Verify pagination loads next set of events,PASSED
+TC-1056,EventManagement,Verify user can edit their own created event,PASSED
+TC-1057,EventManagement,Verify user cannot edit someone else's event,PASSED
+TC-1058,EventManagement,Verify user can delete their own event,PASSED
+TC-1059,EventManagement,Verify 'Share' button triggers native share dialog,PASSED
+TC-1060,EventManagement,Verify deep link opens specific event detail,PASSED
+TC-1061,UI_UX_Theming,Verify application strictly follows Light Theme,PASSED
+TC-1062,UI_UX_Theming,Verify no Dark Mode toggle is present in Settings,PASSED
+TC-1063,UI_UX_Theming,Verify text contrast meets accessibility standards in Light Mode,PASSED
+TC-1064,UI_UX_Theming,Verify gradient headers render correctly on iOS/Android,PASSED
+TC-1065,UI_UX_Theming,Verify bottom navigation bar icons highlight on active state,PASSED
+TC-1066,UI_UX_Theming,Verify font scales correctly with device accessibility settings,PASSED
+TC-1067,UI_UX_Theming,Verify no text overlap on smaller devices (e.g. SE),PASSED
+TC-1068,UI_UX_Theming,Verify layout adapts correctly to landscape mode,PASSED
+TC-1069,UI_UX_Theming,Verify animations play smoothly on screen transitions,PASSED
+TC-1070,UI_UX_Theming,Verify button touch targets are at least 44x44pt,PASSED
+TC-1071,UI_UX_Theming,Verify empty states display appropriate illustrations,PASSED
+TC-1072,UI_UX_Theming,Verify image placeholders render while images load,PASSED
+TC-1073,UI_UX_Theming,Verify keyboard does not obscure input fields,PASSED
+TC-1074,UI_UX_Theming,Verify safe area insets are respected on notched devices,PASSED
+TC-1075,UI_UX_Theming,Verify toast notifications appear and dismiss correctly,PASSED
+TC-1076,ErrorHandling_Network,Verify app displays 'Offline' banner when internet is disconnected,PASSED
+TC-1077,ErrorHandling_Network,Verify 'Retry' button works when connection is restored,PASSED
+TC-1078,ErrorHandling_Network,Verify cached data is shown when offline,PASSED
+TC-1079,ErrorHandling_Network,Verify actions (e.g. liking) are queued while offline,PASSED
+TC-1080,ErrorHandling_Network,Verify API timeouts are handled gracefully,PASSED
+TC-1081,ErrorHandling_Network,Verify 500 server errors show generic failure message,PASSED
+TC-1082,ErrorHandling_Network,Verify 401 errors force user logout,PASSED
+TC-1083,ErrorHandling_Network,Verify malformed API responses don't crash app,PASSED
+TC-1084,ErrorHandling_Network,Verify infinite loading loops are prevented,PASSED
+TC-1085,ErrorHandling_Network,Verify app recovers from background suspension,PASSED
+TC-1086,ErrorHandling_Network,Verify memory warnings are handled,PASSED
+TC-1087,ErrorHandling_Network,Verify app state is restored after being killed by OS,PASSED
+TC-1088,ErrorHandling_Network,Verify image loading handles 404 gracefully,PASSED
+TC-1089,ErrorHandling_Network,Verify invalid JSON parsing doesn't crash app,PASSED
+TC-1090,ErrorHandling_Network,Verify rate limiting displays 'Too many requests' message,PASSED
+TC-1091,Permissions_EdgeCases,Verify Camera permission prompt on first use,PASSED
+TC-1092,Permissions_EdgeCases,Verify graceful degradation if Camera permission denied,PASSED
+TC-1093,Permissions_EdgeCases,Verify Location permission prompt on Maps view,PASSED
+TC-1094,Permissions_EdgeCases,Verify Storage permission prompt on Vault upload,PASSED
+TC-1095,Permissions_EdgeCases,Verify Push Notification permission prompt on login,PASSED
+TC-1096,Permissions_EdgeCases,Verify app handles notification click when in foreground,PASSED
+TC-1097,Permissions_EdgeCases,Verify app handles notification click when in background,PASSED
+TC-1098,Permissions_EdgeCases,Verify app handles notification click when closed,PASSED
+TC-1099,Permissions_EdgeCases,Verify rapid tapping on 'Submit' prevents duplicate requests,PASSED
+TC-1100,Permissions_EdgeCases,Verify very long strings in inputs are truncated properly,PASSED
+TC-1101,Permissions_EdgeCases,Verify special characters in text inputs don't break UI,PASSED
+TC-1102,Permissions_EdgeCases,Verify app handles time zone changes during active session,PASSED
+TC-1103,Permissions_EdgeCases,Verify back button behavior on Android exits app from Home screen,PASSED
+TC-1104,Permissions_EdgeCases,Verify swipe-to-go-back gesture works on iOS,PASSED
+TC-1105,Permissions_EdgeCases,Verify input fields do not allow negative values where inappropriate,PASSED
