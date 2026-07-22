@@ -10,6 +10,7 @@
     "test:navigation": "mocha --require rootHooks.js tests/navigation/*.test.js --timeout 300000 --exit",
     "test:explore": "mocha --require rootHooks.js tests/explore/*.test.js --timeout 300000 --exit",
     "test:ui": "mocha --require rootHooks.js tests/ui/*.test.js --timeout 300000 --exit",
+    "test:master": "mocha --require rootHooks.js tests/master/*.test.js --timeout 300000 --reporter mochawesome --reporter-options reportDir=reports/html,reportFilename=orin-e2e-report,overwrite=true,inline=true --exit",
     "test:ci": "mocha --require rootHooks.js tests/**/*.test.js --timeout 300000 --reporter mochawesome --reporter-options reportDir=reports/html,reportFilename=orin-e2e-report,overwrite=true,inline=true --exit",
     "clean": "rimraf reports",
     "report:open": "start reports\\html\\orin-e2e-report.html"
