@@ -5,8 +5,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.GMAIL_USER || 'orin.platform.demo@gmail.com',
-    pass: process.env.GMAIL_PASS || 'mock_app_password_123'
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
   }
 });
 
@@ -18,7 +18,7 @@ const sendEmail = async (to, subject, htmlContent) => {
   try {
     // Attempt to send real email
     // const info = await transporter.sendMail({
-    //   from: '"Orin Platform" <orin.platform.demo@gmail.com>',
+    //   from: '"Orin Platform" <info@example.com>',
     //   to,
     //   subject,
     //   html: htmlContent

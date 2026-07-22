@@ -29,11 +29,12 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
-      setCurrentUser(user);
+      setLoading(true); // Ensure loading state during auth transition
       if (user) {
         try {
           const profile = await getUserProfile(user.uid);
           setUserProfile(profile);
+          setCurrentUser(user); // Set currentUser AFTER profile is loaded to avoid premature redirects
           if (profile) {
             const todayStr = new Date().toLocaleDateString('en-CA');
             if (profile.lastLoginDate !== todayStr) {
@@ -58,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         }
       } else {
         setUserProfile(null);
+        setCurrentUser(null);
       }
       setLoading(false);
     });

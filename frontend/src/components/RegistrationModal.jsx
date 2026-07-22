@@ -98,7 +98,7 @@ export default function RegistrationModal({ event, onClose, onSuccess }) {
           className="btn-primary" 
           style={{ width: '100%', fontSize: '16px', padding: '16px' }}
         >
-          {isSubmitting ? 'Registering...' : 'Confirm Registration'}
+          {isSubmitting ? 'Registering...' : 'Confirm & Enter Action Center'}
         </button>
 
       </div>

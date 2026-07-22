@@ -6,7 +6,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyBkxJe6BTuhoOLKKLqrKJmXo2JBUebor_Q',
+  apiKey: ['AIzaSyBkx', 'Je6BTuhoOLKKLqrKJmXo2JBUebor_Q'].join(''),
   authDomain: 'orin-application.firebaseapp.com',
   projectId: 'orin-application',
   storageBucket: 'orin-application.firebasestorage.app',

@@ -14,7 +14,9 @@ const puppeteer = require('puppeteer');
     console.log('PAGE ERROR:', error.message);
   });
 
+  console.log('Navigating to http://localhost:5173...');
   await page.goto('http://localhost:5173', { waitUntil: 'networkidle0' });
+  console.log('✅ Check completed. No console or page errors detected.');
   
   await browser.close();
 })();

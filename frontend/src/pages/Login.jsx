@@ -76,14 +76,7 @@ export default function Login() {
 
   return (
     /* Full-page centered wrapper */
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #EDE9FE 0%, #F8F9FA 50%, #EFF6FF 100%)',
-      padding: '24px',
-    }}>
+    <div className="login-container">
       {/* Two-column card */}
       <div className="auth-card">
 
@@ -96,7 +89,7 @@ export default function Login() {
           {/* Logo */}
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-              <div style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>O</div>
+              <img src="/master_icon.png" alt="Orin Logo" style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'contain' }} />
               <span style={{ fontSize: '22px', fontWeight: '800', letterSpacing: '-0.5px' }}>Orin</span>
             </div>
             <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '12px', lineHeight: '1.25' }}>
@@ -127,7 +120,7 @@ export default function Login() {
         <div className="auth-right">
           {/* Mobile Only Brand Header */}
           <div className="mobile-brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
-            <div style={{ width: 32, height: 32, background: 'linear-gradient(135deg, #7B61FF, #9D88FF)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 16, fontWeight: 'bold' }}>O</div>
+            <img src="/master_icon.png" alt="Orin Logo" style={{ width: 32, height: 32, borderRadius: 10, objectFit: 'contain' }} />
             <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px' }}>Orin</span>
           </div>
           <div style={{ marginBottom: '32px' }}>

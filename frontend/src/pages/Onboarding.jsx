@@ -169,11 +169,7 @@ export default function Onboarding() {
       minHeight: '100vh', background: 'linear-gradient(135deg, #F8F9FA 0%, #EDE9FE 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
     }}>
-      <div style={{
-        background: 'white', borderRadius: '24px', padding: '40px',
-        width: '100%', maxWidth: '600px',
-        boxShadow: '0 24px 64px rgba(123,97,255,0.1)',
-      }}>
+      <div className="onboarding-card">
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
@@ -239,7 +235,7 @@ export default function Onboarding() {
               <label style={labelStyle}>Department</label>
               <input style={inputStyle} value={formData.department} onChange={e => handleChange('department', e.target.value)} placeholder="e.g. Computer Science & Engineering" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="onboarding-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label style={labelStyle}>Degree Program</label>
                 <input style={inputStyle} value={formData.degreeProgram} onChange={e => handleChange('degreeProgram', e.target.value)} placeholder="e.g. B.Tech" />

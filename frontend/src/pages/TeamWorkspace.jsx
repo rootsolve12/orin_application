@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
-  Users, Hash, File, Link as LinkIcon, Send, Clock, Clipboard, Check, 
+  Hash, File, Link as LinkIcon, Send, Clock, Clipboard, Check, 
   LogOut, UploadCloud, Loader2, Info, Video, Plus, ExternalLink,
-  KanbanSquare, MoreVertical, LayoutGrid
+  KanbanSquare, Trash2, X, FileText, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  createTeam, joinTeam, getTeam, getUserProfile, sendTeamMessage, 
+  createTeam, joinTeam, getUserProfile, sendTeamMessage, 
   subscribeToTeamMessages, uploadTeamFile, addTeamVaultFile, leaveTeam,
   getEvent, getUserRegistrations,
-  addTeamTask, updateTeamTaskStatus, addTeamLink
+  addTeamTask, updateTeamTaskStatus, addTeamLink,
+  subscribeToTeam, disbandTeam, updateTeamLinks, updateTeamVault
 } from '../firebase/firestore';
 
 export default function TeamWorkspace() {
@@ -45,43 +46,83 @@ export default function TeamWorkspace() {
   const chatBottomRef = useRef(null);
 
   useEffect(() => {
-    const initWorkspace = async () => {
-      setLoading(true);
-      try {
-        if (userProfile?.teamId) {
-          const teamData = await getTeam(userProfile.teamId);
-          setTeam(teamData);
-          
-          if (teamData) {
-            const memberProfiles = await Promise.all(
-              (teamData.memberIds || []).map(async (id) => {
-                const profile = await getUserProfile(id);
-                return { uid: id, ...profile };
-              })
-            );
-            setTeamMembers(memberProfiles);
-
-            if (teamData.eventId) {
-              const eventData = await getEvent(teamData.eventId);
-              setLinkedEvent(eventData);
+    let unsubscribeTeam = () => {};
+    
+    const setupTeamSubscription = async () => {
+      if (!userProfile?.teamId) {
+        setTeam(null);
+        setTeamMembers([]);
+        setLinkedEvent(null);
+        
+        if (currentUser) {
+          try {
+            const regs = await getUserRegistrations(currentUser.uid);
+            const teamEvents = regs.filter(e => e.isTeamEvent);
+            setRegisteredEvents(teamEvents);
+            if (teamEvents.length > 0) {
+              setSelectedEventId(teamEvents[0].id);
             }
-          }
-        } else if (currentUser) {
-          const regs = await getUserRegistrations(currentUser.uid);
-          const teamEvents = regs.filter(e => e.isTeamEvent);
-          setRegisteredEvents(teamEvents);
-          if (teamEvents.length > 0) {
-            setSelectedEventId(teamEvents[0].id);
+          } catch (err) {
+            console.error("Error fetching registrations:", err);
           }
         }
-      } catch (err) {
-        console.error("Workspace init error:", err);
-      } finally {
         setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      unsubscribeTeam = subscribeToTeam(userProfile.teamId, async (teamData) => {
+        if (!teamData) {
+          setTeam(null);
+          setTeamMembers([]);
+          setLinkedEvent(null);
+          await refreshProfile();
+          setLoading(false);
+          return;
+        }
+        
+        setTeam(teamData);
+        
+        if (teamData.eventId) {
+          try {
+            const eventData = await getEvent(teamData.eventId);
+            setLinkedEvent(eventData);
+          } catch (err) {
+            console.error("Error fetching event:", err);
+          }
+        } else {
+          setLinkedEvent(null);
+        }
+        setLoading(false);
+      });
+    };
+    
+    setupTeamSubscription();
+    
+    return () => {
+      unsubscribeTeam();
+    };
+  }, [userProfile?.teamId, currentUser, refreshProfile]);
+
+  useEffect(() => {
+    if (!team?.memberIds) return;
+    
+    const fetchMemberProfiles = async () => {
+      try {
+        const memberProfiles = await Promise.all(
+          team.memberIds.map(async (id) => {
+            const profile = await getUserProfile(id);
+            return { uid: id, ...profile };
+          })
+        );
+        setTeamMembers(memberProfiles);
+      } catch (err) {
+        console.error("Error fetching member profiles:", err);
       }
     };
-    initWorkspace();
-  }, [userProfile?.teamId, currentUser]);
+    
+    fetchMemberProfiles();
+  }, [team?.memberIds]);
 
   useEffect(() => {
     if (!team?.id) return;
@@ -149,7 +190,6 @@ export default function TeamWorkspace() {
         uploaderName: userProfile.name || 'Team Member', uploadedAt: new Date().toISOString()
       };
       await addTeamVaultFile(team.id, fileData);
-      setTeam(prev => ({ ...prev, vault: [...(prev.vault || []), fileData] }));
       setUploadProgress(null);
       alert('File uploaded to team vault!');
     } catch (err) {
@@ -166,14 +206,29 @@ export default function TeamWorkspace() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  const handleDisbandTeam = async () => {
+    if (!team?.id) return;
+    if (window.confirm("Are you sure you want to DISBAND this team? All members will be removed, and all tasks, vault files, and links will be permanently deleted.")) {
+      setIsSubmitting(true);
+      try {
+        await disbandTeam(team.id);
+        alert('Team disbanded successfully.');
+        setTeam(null);
+        setTeamMembers([]);
+        setMessages([]);
+        await refreshProfile();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to disband team.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
   const handleLeaveTeam = async () => {
     if (!team?.id) return;
-    const isLeader = team.leaderId === currentUser.uid;
-    const msg = isLeader 
-      ? "As the Leader, leaving might disrupt the team. Transfer leadership or disband. Are you sure you want to leave?"
-      : "Are you sure you want to leave this team?";
-    
-    if (window.confirm(msg)) {
+    if (window.confirm("Are you sure you want to leave this team?")) {
       try {
         await leaveTeam(currentUser.uid, team.id);
         alert('You have successfully left the team.');
@@ -196,7 +251,6 @@ export default function TeamWorkspace() {
     try {
       const taskObj = { title: newTaskTitle, status: 'todo', assignees: [] };
       await addTeamTask(team.id, taskObj);
-      setTeam(prev => ({ ...prev, tasks: [...(prev.tasks || []), taskObj] }));
       setNewTaskTitle('');
       setShowTaskInput(false);
     } catch (err) {
@@ -213,9 +267,19 @@ export default function TeamWorkspace() {
     tasks[taskIndex].status = currentStatus === 'todo' ? 'in-progress' : (currentStatus === 'in-progress' ? 'done' : 'todo');
     try {
       await updateTeamTaskStatus(team.id, tasks);
-      setTeam(prev => ({ ...prev, tasks }));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteTask = async (e, taskIndex) => {
+    e.stopPropagation();
+    if (!team?.id) return;
+    const tasks = (team.tasks || []).filter((_, idx) => idx !== taskIndex);
+    try {
+      await updateTeamTaskStatus(team.id, tasks);
+    } catch (err) {
+      console.error("Failed to delete task:", err);
     }
   };
 
@@ -227,7 +291,6 @@ export default function TeamWorkspace() {
     try {
       const linkObj = { title: newLinkTitle, url: newLinkUrl };
       await addTeamLink(team.id, linkObj);
-      setTeam(prev => ({ ...prev, links: [...(prev.links || []), linkObj] }));
       setNewLinkTitle('');
       setNewLinkUrl('');
       setShowLinkInput(false);
@@ -235,6 +298,30 @@ export default function TeamWorkspace() {
       console.error(err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteLink = async (e, linkIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!team?.id) return;
+    const links = (team.links || []).filter((_, idx) => idx !== linkIndex);
+    try {
+      await updateTeamLinks(team.id, links);
+    } catch (err) {
+      console.error("Failed to delete link:", err);
+    }
+  };
+
+  const handleDeleteVaultFile = async (e, fileIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!team?.id) return;
+    const vault = (team.vault || []).filter((_, idx) => idx !== fileIndex);
+    try {
+      await updateTeamVault(team.id, vault);
+    } catch (err) {
+      console.error("Failed to delete vault file:", err);
     }
   };
 
@@ -371,12 +458,22 @@ export default function TeamWorkspace() {
             })}
           </div>
 
-          <button 
-            onClick={handleLeaveTeam}
-            style={{ width: '100%', border: '1px solid #DC3545', background: 'transparent', color: '#DC3545', padding: '12px', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '16px', transition: '0.2s' }}
-          >
-            <LogOut size={16} /> Leave Workspace
-          </button>
+          {currentUser.uid === team.leaderId ? (
+            <button 
+              onClick={handleDisbandTeam}
+              style={{ width: '100%', border: '1px solid #DC3545', background: 'transparent', color: '#DC3545', padding: '12px', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '16px', transition: '0.2s' }}
+              disabled={isSubmitting}
+            >
+              <Trash2 size={16} /> Disband Team
+            </button>
+          ) : (
+            <button 
+              onClick={handleLeaveTeam}
+              style={{ width: '100%', border: '1px solid #DC3545', background: 'transparent', color: '#DC3545', padding: '12px', borderRadius: '12px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '16px', transition: '0.2s' }}
+            >
+              <LogOut size={16} /> Leave Workspace
+            </button>
+          )}
         </div>
 
         {/* Middle Pane: Chat Hub */}
@@ -492,12 +589,23 @@ export default function TeamWorkspace() {
                     (team.tasks || []).map((task, idx) => {
                       const statusColors = { 'todo': 'var(--border-light)', 'in-progress': '#FFA116', 'done': '#00F0FF' };
                       const statusIcons = { 'todo': '⚪', 'in-progress': '🔄', 'done': '✅' };
+                      const isLeader = currentUser.uid === team.leaderId;
                       return (
-                        <div key={idx} onClick={() => toggleTaskStatus(idx)} style={{ background: 'var(--bg-light)', padding: '12px', borderRadius: '12px', border: `1px solid ${statusColors[task.status] || 'var(--border-light)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: '0.2s' }}>
-                          <span style={{ fontSize: '13px', color: task.status === 'done' ? 'var(--muted-light)' : 'var(--text-light)', textDecoration: task.status === 'done' ? 'line-through' : 'none', fontWeight: '500' }}>
-                            {task.title}
-                          </span>
-                          <span style={{ fontSize: '14px' }}>{statusIcons[task.status]}</span>
+                        <div key={idx} onClick={() => toggleTaskStatus(idx)} style={{ background: 'var(--bg-light)', padding: '12px', borderRadius: '12px', border: `1px solid ${statusColors[task.status] || 'var(--border-light)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: '0.2s', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                            {isLeader && (
+                              <button 
+                                onClick={(e) => handleDeleteTask(e, idx)} 
+                                style={{ background: 'transparent', border: 'none', color: '#DC3545', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                            <span style={{ fontSize: '13px', color: task.status === 'done' ? 'var(--muted-light)' : 'var(--text-light)', textDecoration: task.status === 'done' ? 'line-through' : 'none', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {task.title}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '14px', flexShrink: 0 }}>{statusIcons[task.status]}</span>
                         </div>
                       )
                     })
@@ -528,19 +636,30 @@ export default function TeamWorkspace() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
-                  {team.vault?.map((file, idx) => (
-                    <div key={idx} style={{ padding: '12px', background: 'var(--bg-light)', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <a href={file.url} target="_blank" rel="noreferrer" style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', wordBreak: 'break-all' }}>
-                          <FileText size={14} /> {file.name}
-                        </a>
+                  {team.vault?.map((file, idx) => {
+                    const isLeader = currentUser.uid === team.leaderId;
+                    return (
+                      <div key={idx} style={{ padding: '12px', background: 'var(--bg-light)', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                          <a href={file.url} target="_blank" rel="noreferrer" style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', wordBreak: 'break-all', flex: 1 }}>
+                            <FileText size={14} style={{ flexShrink: 0 }} /> {file.name}
+                          </a>
+                          {isLeader && (
+                            <button 
+                              onClick={(e) => handleDeleteVaultFile(e, idx)} 
+                              style={{ background: 'transparent', border: 'none', color: '#DC3545', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted-light)' }}>
+                          <span>Uploaded by {file.uploaderName}</span>
+                          <span>{file.size}</span>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted-light)' }}>
-                        <span>Uploaded by {file.uploaderName}</span>
-                        <span>{file.size}</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -570,15 +689,36 @@ export default function TeamWorkspace() {
                   {(team.links || []).length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--muted-light)', fontSize: '13px' }}>Pin important resources here.</div>
                   ) : (
-                    (team.links || []).map((link, idx) => (
-                      <a key={idx} href={link.url} target="_blank" rel="noreferrer" style={{ background: 'var(--bg-light)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textDecoration: 'none', transition: '0.2s', color: 'var(--text-light)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ background: 'var(--surface)', padding: '8px', borderRadius: '8px', display: 'flex' }}><ExternalLink size={16} color="var(--primary)" /></div>
-                          <span style={{ fontSize: '14px', fontWeight: '700' }}>{link.title}</span>
+                    (team.links || []).map((link, idx) => {
+                      const isLeader = currentUser.uid === team.leaderId;
+                      return (
+                        <div 
+                          key={idx} 
+                          style={{ 
+                            background: 'var(--bg-light)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-light)', 
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s'
+                          }}
+                        >
+                          <a href={link.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'var(--text-light)', flex: 1, minWidth: 0 }}>
+                            <div style={{ background: 'var(--surface)', padding: '8px', borderRadius: '8px', display: 'flex', flexShrink: 0 }}><ExternalLink size={16} color="var(--primary)" /></div>
+                            <span style={{ fontSize: '14px', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.title}</span>
+                          </a>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                            <a href={link.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', color: 'var(--muted-light)' }}>
+                              <ArrowRight size={14} />
+                            </a>
+                            {isLeader && (
+                              <button 
+                                onClick={(e) => handleDeleteLink(e, idx)} 
+                                style={{ background: 'transparent', border: 'none', color: '#DC3545', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <ArrowRight size={14} color="var(--muted-light)" />
-                      </a>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>

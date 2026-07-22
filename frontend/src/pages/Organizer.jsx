@@ -41,6 +41,14 @@ export default function Organizer() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   // Tab State: 'overview' | 'events' | 'participants' | 'submissions' | 'rankings'
   const [activeTab, setActiveTab] = useState('overview');
   
@@ -480,45 +488,48 @@ export async function loginUser(email, password) {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px', color: '#1A1A1A' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '16px 12px' : '24px', color: '#1A1A1A' }}>
       
       {/* Top Banner */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '24px', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', marginBottom: '32px' }}>
         <div>
-          <h1 className="heading-1" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h1 className="heading-1" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: isMobile ? '24px' : '32px' }}>
             Organizer Operations Center
           </h1>
-          <p className="text-muted" style={{ marginTop: 4 }}>Manage registrations, evaluate submissions, and track competitive rounds.</p>
+          <p className="text-muted" style={{ marginTop: 4, fontSize: isMobile ? '13px' : '14px' }}>Manage registrations, evaluate submissions, and track competitive rounds.</p>
         </div>
-        <button onClick={() => navigate('/organizer/create')} className="btn-primary" style={{ padding: '12px 24px', fontSize: '15px' }}>
+        <button onClick={() => navigate('/organizer/create')} className="btn-primary" style={{ padding: '12px 24px', fontSize: '15px', width: isMobile ? '100%' : 'auto', textAlign: 'center' }}>
           + Create New Event
         </button>
       </div>
 
       {/* KPI Ribbon */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
-        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+      <div 
+        className={isMobile ? "swipe-container" : ""} 
+        style={isMobile ? { marginBottom: '32px', display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' } : { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}
+      >
+        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', flex: isMobile ? '0 0 160px' : 'auto', minWidth: isMobile ? '140px' : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Activity color="var(--primary)" size={20} />
             <span style={{ fontWeight: '800', fontSize: '24px', color: 'var(--text)' }}>{totalEventsCount}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-light)', marginTop: '8px', fontWeight: '600' }}>Total Events</div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', flex: isMobile ? '0 0 160px' : 'auto', minWidth: isMobile ? '140px' : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Users color="#28A745" size={20} />
             <span style={{ fontWeight: '800', fontSize: '24px', color: 'var(--text)' }}>{totalRegsCount}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-light)', marginTop: '8px', fontWeight: '600' }}>Registrations</div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', flex: isMobile ? '0 0 160px' : 'auto', minWidth: isMobile ? '140px' : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <CheckCircle color="#FFA116" size={20} />
             <span style={{ fontWeight: '800', fontSize: '24px', color: 'var(--text)' }}>{globalPendingCount}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-light)', marginTop: '8px', fontWeight: '600' }}>Pending Approval</div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', flex: isMobile ? '0 0 160px' : 'auto', minWidth: isMobile ? '140px' : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <FileText color="#17A2B8" size={20} />
             <span style={{ fontWeight: '800', fontSize: '24px', color: 'var(--text)' }}>
@@ -527,7 +538,7 @@ export async function loginUser(email, password) {
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-light)', marginTop: '8px', fontWeight: '600' }}>Submissions (Current)</div>
         </div>
-        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+        <div className="stat-card" style={{ padding: '20px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', flex: isMobile ? '0 0 160px' : 'auto', minWidth: isMobile ? '140px' : 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Award color="#6C757D" size={20} />
             <span style={{ fontWeight: '800', fontSize: '24px', color: 'var(--text)' }}>
@@ -539,7 +550,7 @@ export async function loginUser(email, password) {
       </div>
 
       {/* Tabs Menu */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', gap: '24px', marginBottom: '24px', overflowX: 'auto' }}>
+      <div className="swipe-container" style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', gap: '24px', marginBottom: '24px' }}>
         {[
           { id: 'overview', label: '📊 Dashboard Overview' },
           { id: 'analytics', label: '📈 Analytics Insights' },
@@ -571,7 +582,7 @@ export async function loginUser(email, password) {
 
       {/* TAB CONTENT: Overview */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr', gap: '24px' }}>
           
           <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '16px' }}>Event Selection</h3>
@@ -746,7 +757,7 @@ export async function loginUser(email, password) {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
             
             {/* Registration Growth Chart */}
             <div style={{ background: 'white', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-light)' }}>
@@ -911,72 +922,126 @@ export async function loginUser(email, password) {
 
       {/* TAB CONTENT: Events Table */}
       {activeTab === 'events' && (
-        <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
-              <tr>
-                <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Event Name</th>
-                <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Round Stage</th>
-                <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Status</th>
-                <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Registrations</th>
-                <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map(event => (
-                <tr key={event.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                  <td style={{ padding: '16px', fontWeight: '600' }}>{event.title}</td>
-                  <td style={{ padding: '16px', fontSize: '14px' }}>
-                    <span style={{ background: '#F3F0FF', color: 'var(--primary)', padding: '4px 10px', borderRadius: '8px', fontWeight: '600', fontSize: '12px' }}>
-                      {event.rounds?.[event.currentRoundIndex || 0]}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px' }}>
-                    <span style={{ 
-                      padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '700',
-                      background: event.status === 'Published' ? 'rgba(40, 167, 69, 0.1)' : event.status === 'Draft' ? 'rgba(108, 117, 125, 0.1)' : 'rgba(220, 53, 69, 0.1)',
-                      color: event.status === 'Published' ? '#28A745' : event.status === 'Draft' ? '#6C757D' : '#DC3545'
-                    }}>
-                      {event.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px', fontWeight: '600', fontSize: '14px' }}>{event.registeredCount} / {event.maxCapacity}</td>
-                  <td style={{ padding: '16px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                      <button 
-                        onClick={() => handleAdvanceRound(event.id)}
-                        className="btn-primary" 
-                        style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--primary)' }}
-                      >
-                        Advance Round
-                      </button>
-                      <select 
-                        onChange={(e) => handleDropdownAction(event.id, e.target.value)} 
-                        value="Manage Actions..."
-                        style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                      >
-                        <option disabled>Manage Actions...</option>
-                        {event.status === 'Draft' && <option value="Publish">Publish</option>}
-                        {(event.status === 'Published' || event.status === 'Active') && <option value="Pause Registrations">Pause Registrations</option>}
-                        {event.status === 'Paused' && <option value="Resume Registrations">Resume Registrations</option>}
-                        <option value="Extend Deadlines">Extend Deadline</option>
-                        <option value="Duplicate">Duplicate Event</option>
-                        <option value="Archive">Archive Event</option>
-                      </select>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {events.length === 0 && (
+        isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {events.map(event => (
+              <div key={event.id} style={{ background: 'white', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h4 style={{ fontWeight: '700', fontSize: '15px', margin: 0, color: 'var(--text)' }}>{event.title}</h4>
+                  <span style={{ 
+                    padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
+                    background: event.status === 'Published' ? 'rgba(40, 167, 69, 0.1)' : event.status === 'Draft' ? 'rgba(108, 117, 125, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                    color: event.status === 'Published' ? '#28A745' : event.status === 'Draft' ? '#6C757D' : '#DC3545'
+                  }}>
+                    {event.status}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-light)' }}>
+                  <span>Round Stage:</span>
+                  <span style={{ background: '#F3F0FF', color: 'var(--primary)', padding: '2px 8px', borderRadius: '6px', fontWeight: '600', fontSize: '12px' }}>
+                    {event.rounds?.[event.currentRoundIndex || 0]}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-light)' }}>
+                  <span>Registrations:</span>
+                  <span style={{ fontWeight: '700', color: 'var(--text)' }}>{event.registeredCount} / {event.maxCapacity}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px', borderTop: '1px solid var(--border-light)', paddingTop: '12px' }}>
+                  <button 
+                    onClick={() => handleAdvanceRound(event.id)}
+                    className="btn-primary" 
+                    style={{ flex: 1, padding: '8px', fontSize: '12px', background: 'var(--primary)', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    Advance Round
+                  </button>
+                  <select 
+                    onChange={(e) => handleDropdownAction(event.id, e.target.value)} 
+                    value="Manage Actions..."
+                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface)', fontSize: '12px', fontWeight: '600', cursor: 'pointer', height: '36px' }}
+                  >
+                    <option disabled>Manage Actions...</option>
+                    {event.status === 'Draft' && <option value="Publish">Publish</option>}
+                    {(event.status === 'Published' || event.status === 'Active') && <option value="Pause Registrations">Pause Registrations</option>}
+                    {event.status === 'Paused' && <option value="Resume Registrations">Resume Registrations</option>}
+                    <option value="Extend Deadlines">Extend Deadline</option>
+                    <option value="Duplicate">Duplicate Event</option>
+                    <option value="Archive">Archive Event</option>
+                  </select>
+                </div>
+              </div>
+            ))}
+            {events.length === 0 && (
+              <p className="text-muted" style={{ textAlign: 'center', padding: '24px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>No events created. Click "Create New Event" to start.</p>
+            )}
+          </div>
+        ) : (
+          <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
                 <tr>
-                  <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
-                    No events created. Click "Create New Event" to start.
-                  </td>
+                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Event Name</th>
+                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Round Stage</th>
+                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Status</th>
+                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Registrations</th>
+                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px', textAlign: 'right' }}>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {events.map(event => (
+                  <tr key={event.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                    <td style={{ padding: '16px', fontWeight: '600' }}>{event.title}</td>
+                    <td style={{ padding: '16px', fontSize: '14px' }}>
+                      <span style={{ background: '#F3F0FF', color: 'var(--primary)', padding: '4px 10px', borderRadius: '8px', fontWeight: '600', fontSize: '12px' }}>
+                        {event.rounds?.[event.currentRoundIndex || 0]}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{ 
+                        padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '700',
+                        background: event.status === 'Published' ? 'rgba(40, 167, 69, 0.1)' : event.status === 'Draft' ? 'rgba(108, 117, 125, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                        color: event.status === 'Published' ? '#28A745' : event.status === 'Draft' ? '#6C757D' : '#DC3545'
+                      }}>
+                        {event.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px', fontWeight: '600', fontSize: '14px' }}>{event.registeredCount} / {event.maxCapacity}</td>
+                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        <button 
+                          onClick={() => handleAdvanceRound(event.id)}
+                          className="btn-primary" 
+                          style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--primary)' }}
+                        >
+                          Advance Round
+                        </button>
+                        <select 
+                          onChange={(e) => handleDropdownAction(event.id, e.target.value)} 
+                          value="Manage Actions..."
+                          style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                        >
+                          <option disabled>Manage Actions...</option>
+                          {event.status === 'Draft' && <option value="Publish">Publish</option>}
+                          {(event.status === 'Published' || event.status === 'Active') && <option value="Pause Registrations">Pause Registrations</option>}
+                          {event.status === 'Paused' && <option value="Resume Registrations">Resume Registrations</option>}
+                          <option value="Extend Deadlines">Extend Deadline</option>
+                          <option value="Duplicate">Duplicate Event</option>
+                          <option value="Archive">Archive Event</option>
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {events.length === 0 && (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
+                      No events created. Click "Create New Event" to start.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )
       )}
 
       {/* TAB CONTENT: Participants */}
@@ -1034,96 +1099,178 @@ export async function loginUser(email, password) {
             </div>
           </div>
 
-          <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
-                <tr>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Participant Name</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Institution</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Academic Info</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Resume</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Status</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px', textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {registrations.map(reg => {
-                  const profile = reg.autoFilledProfile || {};
-                  return (
-                    <tr key={reg.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ fontWeight: '600' }}>{profile.name || reg.userId}</div>
+          isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {registrations.map(reg => {
+                const profile = reg.autoFilledProfile || {};
+                return (
+                  <div key={reg.id} style={{ background: 'white', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text)' }}>{profile.name || reg.userId}</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>{profile.email || reg.userId}</div>
-                      </td>
-                      <td style={{ padding: '16px', fontSize: '14px' }}>{profile.institution || 'N/A'}</td>
-                      <td style={{ padding: '16px', fontSize: '14px' }}>
-                        {profile.degreeProgram || 'N/A'} {profile.academicYear && `(Yr ${profile.academicYear})`}
-                      </td>
-                      <td style={{ padding: '16px', fontSize: '14px' }}>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                        <span style={{ 
+                          padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
+                          background: reg.status === 'Approved' ? 'rgba(40, 167, 69, 0.1)' : reg.status === 'Pending' ? 'rgba(255, 161, 22, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                          color: reg.status === 'Approved' ? '#28A745' : reg.status === 'Pending' ? '#FFA116' : '#DC3545'
+                        }}>
+                          {reg.status}
+                        </span>
+                        {reg.checkedIn && (
+                          <span style={{ 
+                            padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: '800',
+                            background: 'rgba(40, 167, 69, 0.2)', color: '#1E5E2F'
+                          }}>
+                            ✓ Checked In
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', borderTop: '1px solid var(--border-light)', paddingTop: '10px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-light)' }}>Institution:</span>
+                        <span style={{ fontWeight: '500', color: 'var(--text)' }}>{profile.institution || 'N/A'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-light)' }}>Academic Info:</span>
+                        <span style={{ fontWeight: '500', color: 'var(--text)' }}>{profile.degreeProgram || 'N/A'} {profile.academicYear && `(Yr ${profile.academicYear})`}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: 'var(--text-light)' }}>Resume:</span>
                         {profile.resumeUrl ? (
                           <a href={profile.resumeUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>View Resume</a>
-                        ) : 'No Resume'}
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                          <span style={{ 
-                            padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '700',
-                            background: reg.status === 'Approved' ? 'rgba(40, 167, 69, 0.1)' : reg.status === 'Pending' ? 'rgba(255, 161, 22, 0.1)' : 'rgba(220, 53, 69, 0.1)',
-                            color: reg.status === 'Approved' ? '#28A745' : reg.status === 'Pending' ? '#FFA116' : '#DC3545'
-                          }}>
-                            {reg.status}
-                          </span>
-                          {reg.checkedIn && (
+                        ) : <span style={{ color: 'var(--text-light)' }}>No Resume</span>}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', borderTop: '1px solid var(--border-light)', paddingTop: '12px' }}>
+                      {reg.status === 'Approved' && !reg.checkedIn && (
+                        <button 
+                          onClick={() => handleCheckIn(selectedEventId, reg.userId)} 
+                          style={{ flex: 1, background: 'var(--primary)', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          Check In
+                        </button>
+                      )}
+                      {reg.status === 'Pending' && (
+                        <>
+                          <button 
+                            onClick={() => handleRegStatusChange(selectedEventId, reg.userId, 'Approved')} 
+                            style={{ flex: 1, background: '#28A745', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            onClick={() => handleRegStatusChange(selectedEventId, reg.userId, 'Rejected')} 
+                            style={{ flex: 1, background: '#DC3545', border: 'none', color: 'white', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {registrations.length === 0 && (
+                <p className="text-muted" style={{ textAlign: 'center', padding: '24px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>No registrations found for this event.</p>
+              )}
+            </div>
+          ) : (
+            <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
+                  <tr>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Participant Name</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Institution</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Academic Info</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Resume</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Status</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registrations.map(reg => {
+                    const profile = reg.autoFilledProfile || {};
+                    return (
+                      <tr key={reg.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ fontWeight: '600' }}>{profile.name || reg.userId}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>{profile.email || reg.userId}</div>
+                        </td>
+                        <td style={{ padding: '16px', fontSize: '14px' }}>{profile.institution || 'N/A'}</td>
+                        <td style={{ padding: '16px', fontSize: '14px' }}>
+                          {profile.degreeProgram || 'N/A'} {profile.academicYear && `(Yr ${profile.academicYear})`}
+                        </td>
+                        <td style={{ padding: '16px', fontSize: '14px' }}>
+                          {profile.resumeUrl ? (
+                            <a href={profile.resumeUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>View Resume</a>
+                          ) : 'No Resume'}
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
                             <span style={{ 
-                              padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: '800',
-                              background: 'rgba(40, 167, 69, 0.2)', color: '#1E5E2F'
+                              padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '700',
+                              background: reg.status === 'Approved' ? 'rgba(40, 167, 69, 0.1)' : reg.status === 'Pending' ? 'rgba(255, 161, 22, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                              color: reg.status === 'Approved' ? '#28A745' : reg.status === 'Pending' ? '#FFA116' : '#DC3545'
                             }}>
-                              ✓ Checked In
+                              {reg.status}
                             </span>
-                          )}
-                        </div>
-                      </td>
-                      <td style={{ padding: '16px', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          {reg.status === 'Approved' && !reg.checkedIn && (
-                            <button 
-                              onClick={() => handleCheckIn(selectedEventId, reg.userId)} 
-                              style={{ background: 'var(--primary)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                            >
-                              Check In
-                            </button>
-                          )}
-                          {reg.status === 'Pending' && (
-                            <>
+                            {reg.checkedIn && (
+                              <span style={{ 
+                                padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: '800',
+                                background: 'rgba(40, 167, 69, 0.2)', color: '#1E5E2F'
+                              }}>
+                                ✓ Checked In
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                            {reg.status === 'Approved' && !reg.checkedIn && (
                               <button 
-                                onClick={() => handleRegStatusChange(selectedEventId, reg.userId, 'Approved')} 
-                                style={{ background: '#28A745', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                                onClick={() => handleCheckIn(selectedEventId, reg.userId)} 
+                                style={{ background: 'var(--primary)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
                               >
-                                Approve
+                                Check In
                               </button>
-                              <button 
-                                onClick={() => handleRegStatusChange(selectedEventId, reg.userId, 'Rejected')} 
-                                style={{ background: '#DC3545', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                        </div>
+                            )}
+                            {reg.status === 'Pending' && (
+                              <>
+                                <button 
+                                  onClick={() => handleRegStatusChange(selectedEventId, reg.userId, 'Approved')} 
+                                  style={{ background: '#28A745', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                                >
+                                  Approve
+                                </button>
+                                <button 
+                                  onClick={() => handleRegStatusChange(selectedEventId, reg.userId, 'Rejected')} 
+                                  style={{ background: '#DC3545', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {registrations.length === 0 && (
+                    <tr>
+                      <td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
+                        No registrations found for this event.
                       </td>
                     </tr>
-                  );
-                })}
-                {registrations.length === 0 && (
-                  <tr>
-                    <td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
-                      No registrations found for this event.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )
         </div>
       )}
 
@@ -1145,7 +1292,7 @@ export async function loginUser(email, password) {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: '24px' }}>
             
             {/* Submissions List */}
             <div style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
@@ -1363,67 +1510,117 @@ export async function loginUser(email, password) {
             </div>
           </div>
 
-          <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
-                <tr>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Rank</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Participant</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Rubric Score</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Status</th>
-                  <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px', textAlign: 'right' }}>Certificate Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions
-                  .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
-                  .map((sub, idx) => (
-                    <tr key={sub.id} style={{ borderBottom: '1px solid var(--border-light)', background: idx === 0 ? 'rgba(255, 215, 0, 0.05)' : idx === 1 ? 'rgba(192, 192, 192, 0.05)' : 'none' }}>
-                      <td style={{ padding: '16px', fontWeight: 'bold' }}>
-                        {idx + 1 === 1 ? '🥇 1st' : idx + 1 === 2 ? '🥈 2nd' : idx + 1 === 3 ? '🥉 3rd' : `${idx + 1}`}
-                      </td>
-                      <td style={{ padding: '16px', fontWeight: '600' }}>
-                        {sub.autoFilledProfile?.name || sub.userId}
-                      </td>
-                      <td style={{ padding: '16px', fontWeight: '800', color: 'var(--primary)' }}>
-                        {sub.totalScore || 0} / 60
-                      </td>
-                      <td style={{ padding: '16px' }}>
-                        <span style={{ 
-                          padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold',
-                          background: sub.status === 'Shortlisted' ? '#28A745' : 'var(--primary)', color: 'white'
-                        }}>
-                          {sub.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '16px', textAlign: 'right' }}>
-                        <button 
-                          onClick={() => handleIssueCert(sub)} 
-                          className="btn-primary" 
-                          style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                        >
-                          <Award size={14} /> Issue Certificate
-                        </button>
+          isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {submissions
+                .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
+                .map((sub, idx) => (
+                  <div key={sub.id} style={{ 
+                    background: idx === 0 ? 'rgba(255, 215, 0, 0.05)' : idx === 1 ? 'rgba(192, 192, 192, 0.05)' : 'white', 
+                    border: '1px solid var(--border-light)', 
+                    borderRadius: '16px', 
+                    padding: '16px', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '10px' 
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: '800', fontSize: '15px', color: idx === 0 ? '#D4AF37' : idx === 1 ? '#9A9A9A' : 'var(--text-light)' }}>
+                        {idx + 1 === 1 ? '🥇 1st' : idx + 1 === 2 ? '🥈 2nd' : idx + 1 === 3 ? '🥉 3rd' : `#${idx + 1}`}
+                      </span>
+                      <span style={{ 
+                        padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold',
+                        background: sub.status === 'Shortlisted' ? '#28A745' : 'var(--primary)', color: 'white'
+                      }}>
+                        {sub.status}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                      <span style={{ color: 'var(--text-light)' }}>Participant:</span>
+                      <span style={{ fontWeight: '700', color: 'var(--text)' }}>{sub.autoFilledProfile?.name || sub.userId}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                      <span style={{ color: 'var(--text-light)' }}>Rubric Score:</span>
+                      <span style={{ fontWeight: '800', color: 'var(--primary)' }}>{sub.totalScore || 0} / 60</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', borderTop: '1px solid var(--border-light)', paddingTop: '12px' }}>
+                      <button 
+                        onClick={() => handleIssueCert(sub)} 
+                        className="btn-primary" 
+                        style={{ width: '100%', padding: '8px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', height: '36px' }}
+                      >
+                        <Award size={14} /> Issue Certificate
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              {submissions.length === 0 && (
+                <p className="text-muted" style={{ textAlign: 'center', padding: '24px', background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)' }}>No evaluation scores submitted. Evaluate submissions first.</p>
+              )}
+            </div>
+          ) : (
+            <div style={{ background: 'white', borderRadius: '16px', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)', textAlign: 'left' }}>
+                  <tr>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Rank</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Participant</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Rubric Score</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px' }}>Status</th>
+                    <th style={{ padding: '16px', fontWeight: '700', color: 'var(--text-light)', fontSize: '13px', textAlign: 'right' }}>Certificate Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {submissions
+                    .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
+                    .map((sub, idx) => (
+                      <tr key={sub.id} style={{ borderBottom: '1px solid var(--border-light)', background: idx === 0 ? 'rgba(255, 215, 0, 0.05)' : idx === 1 ? 'rgba(192, 192, 192, 0.05)' : 'none' }}>
+                        <td style={{ padding: '16px', fontWeight: 'bold' }}>
+                          {idx + 1 === 1 ? '🥇 1st' : idx + 1 === 2 ? '🥈 2nd' : idx + 1 === 3 ? '🥉 3rd' : `${idx + 1}`}
+                        </td>
+                        <td style={{ padding: '16px', fontWeight: '600' }}>
+                          {sub.autoFilledProfile?.name || sub.userId}
+                        </td>
+                        <td style={{ padding: '16px', fontWeight: '800', color: 'var(--primary)' }}>
+                          {sub.totalScore || 0} / 60
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{ 
+                            padding: '4px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold',
+                            background: sub.status === 'Shortlisted' ? '#28A745' : 'var(--primary)', color: 'white'
+                          }}>
+                            {sub.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'right' }}>
+                          <button 
+                            onClick={() => handleIssueCert(sub)} 
+                            className="btn-primary" 
+                            style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <Award size={14} /> Issue Certificate
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  {submissions.length === 0 && (
+                    <tr>
+                      <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
+                        No evaluation scores submitted. Evaluate submissions first.
                       </td>
                     </tr>
-                  ))}
-                {submissions.length === 0 && (
-                  <tr>
-                    <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-light)' }}>
-                      No evaluation scores submitted. Evaluate submissions first.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )
         </div>
       )}
 
       {/* Deadline Extension Modal */}
       {showDeadlineModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '400px', boxShadow: '0 12px 32px rgba(0,0,0,0.1)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px' : '0' }}>
+          <div style={{ background: 'white', padding: isMobile ? '24px' : '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', boxShadow: '0 12px 32px rgba(0,0,0,0.1)' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px' }}>Extend Registration Deadline</h3>
             <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', fontWeight: '600' }}>New Deadline Date</label>
             <input type="date" value={newDeadline} onChange={(e) => setNewDeadline(e.target.value)} className="form-input" style={{ marginBottom: '24px' }} />
@@ -1438,7 +1635,7 @@ export async function loginUser(email, password) {
 
       {/* QR Scanner Simulator Modal */}
       {showScannerModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px' : '0' }}>
           <style>{`
             @keyframes laserScan {
               0% { top: 10%; }
@@ -1446,7 +1643,7 @@ export async function loginUser(email, password) {
               100% { top: 10%; }
             }
           `}</style>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '460px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)' }}>
+          <div style={{ background: 'white', padding: isMobile ? '20px' : '32px', borderRadius: '20px', width: '100%', maxWidth: '460px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <QrCode size={20} color="var(--primary)" /> QR Attendance Scanner Simulator
             </h3>
@@ -1581,7 +1778,7 @@ export async function loginUser(email, password) {
       {/* Plagiarism Code Diff Inspector Modal */}
       {showDiffModal && aiReviewResult?.plagiarismDetails && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 10002, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-          <div style={{ background: 'white', width: '95%', maxWidth: '1000px', borderRadius: '20px', display: 'flex', flexDirection: 'column', height: '85vh', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+          <div style={{ background: 'white', width: '95%', maxWidth: '1000px', borderRadius: '20px', display: 'flex', flexDirection: 'column', height: isMobile ? '92vh' : '85vh', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
             
             {/* Modal Header */}
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8F9FA' }}>
@@ -1607,10 +1804,10 @@ export async function loginUser(email, password) {
             </div>
 
             {/* Side-by-Side Diff Panels */}
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#1E1E1E' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', background: '#1E1E1E' }}>
               
               {/* Left Panel: Submitted */}
-              <div style={{ flex: 1, borderRight: '1px solid #333', display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div style={{ flex: 1, borderRight: isMobile ? 'none' : '1px solid #333', borderBottom: isMobile ? '1px solid #333' : 'none', display: 'flex', flexDirection: 'column', height: isMobile ? '50%' : '100%' }}>
                 <div style={{ background: '#2D2D2D', padding: '10px 16px', color: '#D4D4D4', fontSize: '12px', fontWeight: '700', borderBottom: '1px solid #333' }}>
                   📂 Submitted File: auth.js
                 </div>
@@ -1637,7 +1834,7 @@ export async function loginUser(email, password) {
               </div>
 
               {/* Right Panel: Matched Public Source */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: isMobile ? '50%' : '100%' }}>
                 <div style={{ background: '#2D2D2D', padding: '10px 16px', color: '#D4D4D4', fontSize: '12px', fontWeight: '700', borderBottom: '1px solid #333' }}>
                   🌐 Matched Template: auth-template.js
                 </div>

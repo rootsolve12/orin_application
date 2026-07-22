@@ -24,24 +24,11 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div style={{
-      display: 'flex', minHeight: '100vh', background: '#F8F9FA',
-      alignItems: 'center', justifyContent: 'center',
-      flexDirection: 'column', padding: '20px',
-    }}>
+    <div className="forgot-password-container">
       {/* Logo */}
-      <div style={{
-        width: 56, height: 56, backgroundColor: '#7B61FF', borderRadius: 16,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: '20px', color: 'white', fontSize: 24, fontWeight: 'bold',
-      }}>O</div>
+      <img src="/master_icon.png" alt="Orin Logo" style={{ width: 56, height: 56, borderRadius: 16, objectFit: 'contain', marginBottom: '20px' }} />
 
-      <div style={{
-        width: '100%', maxWidth: '440px', background: 'white',
-        padding: '36px', borderRadius: '16px', border: '1px solid #E9ECEF',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-        textAlign: 'center',
-      }}>
+      <div className="forgot-password-card">
         {status === 'sent' ? (
           <>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📬</div>

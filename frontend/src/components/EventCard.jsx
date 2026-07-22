@@ -1,9 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, Users, Sparkles, Bookmark } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { toggleSaveEvent } from '../firebase/firestore';
 
 export default function EventCard({ event, isMatched, matchedSkills }) {
   const navigate = useNavigate();
+  const { currentUser, userProfile, refreshProfile } = useAuth();
+
+  const savedEvents = userProfile?.savedEvents || [];
+  const isSaved = savedEvents.includes(event.id);
   
   return (
     <div 
@@ -42,7 +48,43 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
         <div style={{ position: 'absolute', top: '16px', left: '16px', background: 'var(--primary)', color: 'white', fontSize: '12px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px' }}>
           Featured
         </div>
-        <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--surface)', color: 'var(--primary)', fontSize: '12px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        
+        {/* Bookmark Button */}
+        <button
+          onClick={async (e) => {
+            e.stopPropagation(); // Stop navigation to event details
+            if (!currentUser) return;
+            try {
+              await toggleSaveEvent(currentUser.uid, event.id);
+              await refreshProfile();
+            } catch (err) {
+              console.error('Error toggling event bookmark:', err);
+            }
+          }}
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            width: '34px',
+            height: '34px',
+            borderRadius: '50%',
+            background: 'var(--surface)',
+            border: '1px solid var(--border-light)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+            zIndex: 100,
+            color: isSaved ? 'var(--primary)' : 'var(--muted-light)',
+            padding: 0
+          }}
+        >
+          <Bookmark size={16} fill={isSaved ? 'var(--primary)' : 'none'} />
+        </button>
+
+        {/* Category Badge - bottom left */}
+        <div style={{ position: 'absolute', bottom: '16px', left: '16px', background: 'var(--surface)', color: 'var(--primary)', fontSize: '12px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           {event.category || 'Hackathon'}
         </div>
         

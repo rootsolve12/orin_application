@@ -197,7 +197,7 @@ export default function Portfolio() {
 
   const user = {
     name: profileData?.displayName || currentUser?.displayName || 'quizhb45',
-    email: currentUser?.email || 'quizhb45@gmail.com',
+    email: currentUser?.email || 'quizhb45@example.com',
     institution: profileData?.institution || 'Simats University',
     department: profileData?.department || 'Computer Science Engineering',
     degreeProgram: profileData?.degreeProgram || 'B.E. / B.Tech',

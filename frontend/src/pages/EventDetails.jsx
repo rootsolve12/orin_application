@@ -9,6 +9,20 @@ export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser, userProfile, refreshProfile } = useAuth();
+
+  const mapRoundToStage = (roundName) => {
+    if (!roundName) return 'Registration';
+    const r = roundName.toLowerCase();
+    if (r.includes('register') || r.includes('screen')) return 'Registration';
+    if (r.includes('assess')) return 'Assessment';
+    if (r.includes('submit') || r.includes('project')) return 'Submission';
+    if (r.includes('review') || r.includes('shortlist') || r.includes('judge')) return 'Review';
+    if (r.includes('final') || r.includes('result') || r.includes('winner')) return 'Results';
+    if (r.includes('certif')) return 'Certification';
+    return 'Registration';
+  };
+
+  const stages = ['Registration', 'Assessment', 'Submission', 'Review', 'Results', 'Certification'];
   
   const [event, setEvent] = useState(null);
   const [registration, setRegistration] = useState(null);
@@ -28,6 +42,43 @@ export default function EventDetails() {
   useEffect(() => {
     const fetchEventData = async () => {
       try {
+        if (id && id.startsWith('mock')) {
+          const mockData = {
+            id,
+            title: id === 'mock1' ? 'Web3 Security Workshop' : id === 'mock2' ? 'Solidity Advanced Assessment' : 'Orin Community Hackathon',
+            category: 'Conference',
+            level: 'Intermediate',
+            date: new Date(Date.now() + 5 * 86400000).toISOString(),
+            endDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+            format: 'Online',
+            registeredCount: 342,
+            maxCapacity: 500,
+            certificate: 'Yes',
+            isTeamEvent: id === 'mock3',
+            description: 'A comprehensive educational event and competition for student developers.',
+            venue: 'Virtual Room',
+            eligibility: 'Open to all students',
+            teamSize: '1 - 4 members',
+            prizes: [
+              { label: 'Winner', value: '₹50,000' }
+            ],
+            skills: ['Blockchain', 'Security', 'React'],
+            schedule: [
+              { day: 'Day 1', time: '10:00 AM', title: 'Introduction', desc: 'Orientation session' }
+            ],
+            faqs: [
+              { q: 'Is it free?', a: 'Yes, it is completely free.' }
+            ],
+            organizer: 'Orin Community',
+            currentRoundIndex: id === 'mock1' ? 1 : id === 'mock2' ? 2 : 0,
+            rounds: ['Registration', 'Screening', 'Assessment', 'Submission', 'Review', 'Shortlisting', 'Final', 'Results', 'Certification']
+          };
+          setEvent(mockData);
+          setRegistration({ status: 'Approved' });
+          setLoading(false);
+          return;
+        }
+
         const data = await getEvent(id);
         setEvent(data);
         if (currentUser) {
@@ -255,7 +306,7 @@ export default function EventDetails() {
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text)' }}>You're in the competition!</h3>
               <p style={{ fontSize: '13px', color: 'var(--text-light)', marginTop: '2px' }}>
-                Active Round: <strong>{event.rounds?.[event.currentRoundIndex || 0] || 'Registration'}</strong>
+                Active Round: <strong>{event.rounds?.[event.currentRoundIndex || 0] || 'Registration'} ({mapRoundToStage(event.rounds?.[event.currentRoundIndex || 0])} Stage)</strong>
               </p>
             </div>
             
@@ -270,9 +321,11 @@ export default function EventDetails() {
 
           {/* Stepper overview */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'white', padding: '12px 16px', borderRadius: '12px', overflowX: 'auto', border: '1px solid var(--border-light)' }}>
-            {(event.rounds || ['Registration', 'Screening', 'Assessment', 'Submission', 'Review', 'Shortlisting', 'Final', 'Results', 'Certification']).map((r, idx) => {
-              const isCompleted = idx < (event.currentRoundIndex || 0);
-              const isActive = idx === (event.currentRoundIndex || 0);
+            {stages.map((st, idx) => {
+              const currentRoundName = event.rounds?.[event.currentRoundIndex || 0] || 'Registration';
+              const activeStageIndex = stages.indexOf(mapRoundToStage(currentRoundName));
+              const isCompleted = idx < activeStageIndex;
+              const isActive = idx === activeStageIndex;
               return (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   <div style={{ 
@@ -285,8 +338,8 @@ export default function EventDetails() {
                     fontSize: '11px', 
                     fontWeight: isActive || isCompleted ? '700' : '500',
                     color: isCompleted ? '#28A745' : isActive ? 'var(--primary)' : 'var(--text-light)'
-                  }}>{r}</span>
-                  {idx < (event.rounds?.length || 9) - 1 && <span style={{ color: 'var(--border-light)', fontSize: '10px' }}>&bull;</span>}
+                  }}>{st}</span>
+                  {idx < stages.length - 1 && <span style={{ color: 'var(--border-light)', fontSize: '10px' }}>&bull;</span>}
                 </div>
               );
             })}
@@ -540,7 +593,10 @@ export default function EventDetails() {
         <RegistrationModal 
           event={event} 
           onClose={() => setShowRegistrationModal(false)}
-          onSuccess={() => setShowRegistrationModal(false)}
+          onSuccess={() => {
+            setShowRegistrationModal(false);
+            navigate(`/event/${event.id}/timeline`, { state: { justRegistered: true } });
+          }}
         />
       )}
 

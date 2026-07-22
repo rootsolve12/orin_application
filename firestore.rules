@@ -54,18 +54,68 @@ service cloud.firestore {
         allow read: if signedIn();
         allow write: if isOrganizer() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
       }
+
+      // Assessments Subcollection
+      match /assessments/{userId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
+
+      // Emergencies Subcollection
+      match /emergencies/{emergencyId} {
+        allow read: if signedIn();
+        allow write: if isOrganizer() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
+      }
+
+      // Submissions Subcollection
+      match /submissions/{userId} {
+        allow read: if signedIn() && (request.auth.uid == userId || get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid);
+        allow write: if signedIn() && (request.auth.uid == userId || get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid);
+      }
     }
 
     // Teams Collection
     match /teams/{teamId} {
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn();
-      allow update, delete: if signedIn() && (request.auth.uid == resource.data.leaderId || request.auth.uid == request.resource.data.leaderId);
+      allow update: if signedIn() && (request.auth.uid == resource.data.leaderId || request.auth.uid in resource.data.memberIds || request.auth.uid in request.resource.data.memberIds);
+      allow delete: if signedIn() && request.auth.uid == resource.data.leaderId;
       
       // Chat Messages Subcollection
       match /messages/{messageId} {
         allow read, write: if signedIn() && request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.memberIds;
       }
+    }
+
+    // Communities Collection
+    match /communities/{communityId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if signedIn();
+      
+      // Messages Subcollection
+      match /messages/{messageId} {
+        allow read, write: if signedIn();
+      }
+    }
+
+    // Certificates Collection
+    match /certificates/{certificateId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && (request.auth.uid == request.resource.data.userId || isOrganizer());
+      allow update, delete: if signedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    // Tickets Collection
+    match /tickets/{ticketId} {
+      allow create: if signedIn();
+      allow read, write: if signedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    // Achievements Collection
+    match /achievements/{achievementId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if signedIn() && request.auth.uid == resource.data.userId;
     }
   }
 }

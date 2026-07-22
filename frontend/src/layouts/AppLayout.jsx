@@ -28,9 +28,12 @@ export default function AppLayout({ children }) {
 
   const drawerItems = [
     { path: '/team', icon: <Users size={20} />, label: 'Team Workspace' },
-    { path: '/certificates', icon: <Award size={20} />, label: 'My Certificates' },
     { path: '/organizer', icon: <Briefcase size={20} />, label: 'Organizer Tools' },
+    { path: '/certificates', icon: <Award size={20} />, label: 'My Certificates' },
+    { path: '/my-registrations', icon: <Bookmark size={20} />, label: 'My Registrations' },
+    { path: '/saved-events', icon: <Bookmark size={20} />, label: 'Saved Events' },
     { path: '/support', icon: <HelpCircle size={20} />, label: 'Help & Support' },
+    { path: '/settings', icon: <Shield size={20} />, label: 'Settings' },
   ];
 
   const handleLogout = async () => {
@@ -50,7 +53,9 @@ export default function AppLayout({ children }) {
       {/* Top Navbar */}
       <header style={{ 
         height: '60px', 
-        background: 'white', 
+        background: 'rgba(255, 255, 255, 0.75)', 
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-light)', 
         display: 'flex', 
         alignItems: 'center', 
@@ -63,23 +68,31 @@ export default function AppLayout({ children }) {
         <button 
           onClick={() => setIsDrawerOpen(true)}
           style={{ 
-            background: '#F3F0FF', 
-            border: '1px solid #E9ECEF', 
+            background: 'rgba(127, 86, 217, 0.08)', 
+            border: '1px solid rgba(127, 86, 217, 0.15)', 
             cursor: 'pointer', 
             padding: '8px 10px', 
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'background 0.2s'
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(127, 86, 217, 0.15)';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(127, 86, 217, 0.08)';
+            e.currentTarget.style.transform = 'scale(1)';
           }}
           title="Menu"
         >
-          <Menu size={22} color="#1A1A1A" strokeWidth={2.5} />
+          <Menu size={22} color="var(--primary)" strokeWidth={2.5} />
         </button>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '20px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          <div style={{ width: 32, height: 32, backgroundColor: 'var(--primary)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '16px' }}>O</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '20px', color: 'var(--text-light)', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          <img src="/master_icon.png" alt="Orin Logo" style={{ width: 32, height: 32, borderRadius: 10, objectFit: 'contain' }} />
           Orin
         </div>
 
@@ -108,7 +121,7 @@ export default function AppLayout({ children }) {
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '18px' }}>
-              <div style={{ width: 28, height: 28, backgroundColor: 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px' }}>O</div>
+              <img src="/master_icon.png" alt="Orin Logo" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'contain' }} />
               Orin
             </div>
             <button onClick={() => setIsDrawerOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -168,17 +181,21 @@ export default function AppLayout({ children }) {
       </div>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '70px', background: 'var(--background)' }}>
+      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px', background: 'var(--background)', position: 'relative' }}>
         {children}
       </main>
 
       {/* Bottom Navigation */}
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
-        background: 'white', borderTop: '1px solid var(--border-light)',
+        background: 'rgba(255, 255, 255, 0.8)', 
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid var(--border-light)',
         display: 'flex', justifyContent: 'space-around', alignItems: 'center',
         zIndex: 1000,
-        padding: '0 8px'
+        padding: '0 8px',
+        boxShadow: '0 -4px 20px rgba(127, 86, 217, 0.03)'
       }}>
         {bottomNavItems.map((item, idx) => {
           const isActive = location.pathname === item.path;
@@ -186,25 +203,20 @@ export default function AppLayout({ children }) {
             <Link 
               key={idx} 
               to={item.path}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                color: isActive ? 'var(--primary)' : 'var(--muted-light)',
-                textDecoration: 'none',
-                background: isActive ? '#F3F0FF' : 'transparent',
-                padding: '8px 16px',
-                borderRadius: '16px',
-                minWidth: '64px',
-                transition: 'background 0.2s'
+              className={isActive ? 'bottom-nav-link active' : 'bottom-nav-link'}
+              onMouseEnter={(e) => {
+                if (!isActive) e.currentTarget.style.background = 'rgba(127, 86, 217, 0.03)';
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) e.currentTarget.style.background = 'transparent';
               }}
             >
               {item.icon}
-              <span style={{ fontSize: '12px', fontWeight: isActive ? 'bold' : '500' }}>{item.label}</span>
+              <span style={{ fontSize: '11px', fontWeight: isActive ? '800' : '600', letterSpacing: '-0.2px' }}>{item.label}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Global Slide-out Chat Drawer */}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import MyEvents from './pages/MyEvents';
+import MyRegistrations from './pages/MyRegistrations';
 import Organizer from './pages/Organizer';
 import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
@@ -20,6 +21,7 @@ import CertificateVerify from './pages/CertificateVerify';
 import Settings from './pages/Settings';
 import Certificates from './pages/Certificates';
 import Portfolio from './pages/Portfolio';
+import SavedEvents from './pages/SavedEvents';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { AuthProvider } from './contexts/AuthContext';
@@ -56,6 +58,7 @@ export default function App() {
               <Route path="/communities" element={<ProtectedRoute><Communities /></ProtectedRoute>} />
               <Route path="/team" element={<ProtectedRoute><TeamWorkspace /></ProtectedRoute>} />
               <Route path="/my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
+              <Route path="/my-registrations" element={<ProtectedRoute><MyRegistrations /></ProtectedRoute>} />
               <Route path="/organizer" element={<ProtectedRoute><Organizer /></ProtectedRoute>} />
               <Route path="/organizer/create" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -63,6 +66,7 @@ export default function App() {
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
               <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+              <Route path="/saved-events" element={<ProtectedRoute><SavedEvents /></ProtectedRoute>} />
 
               {/* ── Certificate verification: public ── */}
               <Route path="/verify/:id" element={<CertificateVerify />} />

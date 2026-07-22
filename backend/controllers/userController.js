@@ -56,8 +56,36 @@ const calculateCompletionScore = (user) => {
 };
 
 exports.getProfile = (req, res) => {
-  // In a real app, extract user ID from auth token
-  const userId = 'user_123';
+  const userId = req.user.id;
+  if (!usersDb[userId]) {
+    usersDb[userId] = {
+      id: userId,
+      name: 'Hitesh B',
+      email: req.user.email || 'hitesh@srmist.edu.in',
+      avatar: 'https://via.placeholder.com/150',
+      institution: 'SRM Institute of Science and Technology',
+      department: 'Computer Science',
+      degreeProgram: 'B.Tech',
+      academicYear: '3rd Year',
+      graduationYear: '2027',
+      skills: ['React', 'Node.js', 'Flutter', 'Firebase'],
+      interests: ['Web3', 'AI/ML', 'Open Source'],
+      careerAspirations: 'Full Stack Developer',
+      resumeUrl: null,
+      links: {
+        linkedin: 'https://linkedin.com/in/hitesh',
+        github: 'https://github.com/hitesh',
+        leetcode: '',
+        kaggle: ''
+      },
+      privacy: 'Public', // Public, Institution Only, Connections Only, Private
+      eventsParticipated: 12,
+      certificatesEarned: 5,
+      eventsCompleted: 10,
+      skillsAcquired: 8,
+      savedEvents: []
+    };
+  }
   const user = usersDb[userId];
   
   if (!user) return res.status(404).json({ success: false, message: 'User not found' });
@@ -74,8 +102,10 @@ exports.getProfile = (req, res) => {
 };
 
 exports.updateProfile = (req, res) => {
-  const userId = 'user_123';
-  if (!usersDb[userId]) usersDb[userId] = {};
+  const userId = req.user.id;
+  if (!usersDb[userId]) {
+    usersDb[userId] = { id: userId };
+  }
   
   // Merge new data
   usersDb[userId] = { ...usersDb[userId], ...req.body };
@@ -91,3 +121,4 @@ exports.updateProfile = (req, res) => {
     }
   });
 };
+

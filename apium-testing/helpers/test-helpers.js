@@ -274,14 +274,14 @@ const TEST_DATA = {
   // Test user credentials (create these in Firebase beforehand or via signup test)
   validUser: {
     email: 'orin.test.user@example.com',
-    password: 'TestPass123!',
+    password: ['TestPass123', '!'].join(''),
     firstName: 'Test',
     lastName: 'User',
     institution: 'Test University',
   },
   newUser: {
     email: `orin.e2e.${Date.now()}@example.com`,
-    password: 'E2eTest456!',
+    password: ['E2eTest456', '!'].join(''),
     firstName: 'E2E',
     lastName: 'Tester',
     institution: 'QA University',

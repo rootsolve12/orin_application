@@ -1,5 +1,10 @@
 const request = require('supertest');
 const app = require('../app');
+const jwt = require('jsonwebtoken');
+
+const SECRET = process.env.JWT_SECRET || 'super_secret_key_123_dont_leak_it';
+const organizerToken = jwt.sign({ id: 'user_123', role: 'organizer' }, SECRET);
+const participantToken = jwt.sign({ id: 'user_test', role: 'participant' }, SECRET);
 
 describe('Events API Endpoints', () => {
   let createdEventId;
@@ -46,6 +51,7 @@ describe('Events API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/events')
+        .set('Authorization', `Bearer ${organizerToken}`)
         .send(newEvent);
 
       expect(response.status).toBe(200);
@@ -58,14 +64,18 @@ describe('Events API Endpoints', () => {
 
   describe('POST /api/events/:id/advance', () => {
     it('should advance the event round index', async () => {
-      const response = await request(app).post(`/api/events/e1/advance`);
+      const response = await request(app)
+        .post(`/api/events/e1/advance`)
+        .set('Authorization', `Bearer ${organizerToken}`);
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toContain('Advanced to');
     });
 
     it('should return 404 when advancing a non-existent event', async () => {
-      const response = await request(app).post(`/api/events/invalid_id/advance`);
+      const response = await request(app)
+        .post(`/api/events/invalid_id/advance`)
+        .set('Authorization', `Bearer ${organizerToken}`);
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
@@ -91,6 +101,7 @@ describe('Events API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/events/e1/register')
+        .set('Authorization', `Bearer ${participantToken}`)
         .send(regPayload);
 
       expect(response.status).toBe(200);
@@ -113,6 +124,7 @@ describe('Events API Endpoints', () => {
 
       const response = await request(app)
         .post('/api/events/e1/submit-project')
+        .set('Authorization', `Bearer ${participantToken}`)
         .send(projectPayload);
 
       expect(response.status).toBe(200);
@@ -125,7 +137,9 @@ describe('Events API Endpoints', () => {
 
   describe('GET /api/events/:id/submissions', () => {
     it('should retrieve submissions for the event', async () => {
-      const response = await request(app).get('/api/events/e1/submissions');
+      const response = await request(app)
+        .get('/api/events/e1/submissions')
+        .set('Authorization', `Bearer ${organizerToken}`);
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(Array.isArray(response.body.data)).toBe(true);
@@ -146,6 +160,7 @@ describe('Events API Endpoints', () => {
 
       const response = await request(app)
         .post(`/api/events/e1/submissions/${testSubmissionId}/evaluate`)
+        .set('Authorization', `Bearer ${organizerToken}`)
         .send(evalPayload);
 
       expect(response.status).toBe(200);

@@ -18,7 +18,6 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
-  Timestamp,
 } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config';
@@ -177,6 +176,17 @@ export const getUserCertificates = async (userId) => {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 };
 
+/** Add a manual certificate for a user */
+export const addCertificate = async (userId, certData) => {
+  const ref = await addDoc(collection(db, 'certificates'), {
+    userId,
+    ...certData,
+    isManual: true,
+    issuedAt: serverTimestamp(),
+  });
+  return ref.id;
+};
+
 /** Update registration status (organizer: Approved, Rejected, Waitlisted) */
 export const updateRegistrationStatus = async (eventId, userId, status) => {
   await updateDoc(doc(db, 'events', eventId, 'registrations', userId), {
@@ -259,15 +269,19 @@ export const getEventTeams = async (eventId) => {
 /** Create a new team */
 export const createTeam = async (leaderId, teamName, eventId) => {
   const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-  const ref = await addDoc(collection(db, 'teams'), {
+  const ref = doc(collection(db, 'teams'));
+  await setDoc(ref, {
     name: teamName,
     leaderId,
     eventId: eventId || null,
     memberIds: [leaderId],
     inviteCode,
+    tasks: [],
+    links: [],
+    vault: [],
     createdAt: serverTimestamp(),
   });
-  await updateDoc(doc(db, 'users', leaderId), { teamId: ref.id });
+  await setDoc(doc(db, 'users', leaderId), { teamId: ref.id }, { merge: true });
   return { id: ref.id, inviteCode };
 };
 
@@ -280,8 +294,45 @@ export const joinTeam = async (userId, inviteCode) => {
   await updateDoc(doc(db, 'teams', teamDoc.id), {
     memberIds: arrayUnion(userId),
   });
-  await updateDoc(doc(db, 'users', userId), { teamId: teamDoc.id });
+  await setDoc(doc(db, 'users', userId), { teamId: teamDoc.id }, { merge: true });
   return { id: teamDoc.id, ...teamDoc.data() };
+};
+
+export const subscribeToTeam = (teamId, callback) => {
+  return onSnapshot(doc(db, 'teams', teamId), (docSnap) => {
+    if (docSnap.exists()) {
+      callback({ id: docSnap.id, ...docSnap.data() });
+    } else {
+      callback(null);
+    }
+  });
+};
+
+export const disbandTeam = async (teamId) => {
+  const teamRef = doc(db, 'teams', teamId);
+  const teamSnap = await getDoc(teamRef);
+  if (!teamSnap.exists()) return;
+  const memberIds = teamSnap.data().memberIds || [];
+  
+  // Remove teamId reference from all members
+  await Promise.all(
+    memberIds.map(id => setDoc(doc(db, 'users', id), { teamId: null }, { merge: true }))
+  );
+  
+  // Delete the team document
+  await deleteDoc(teamRef);
+};
+
+export const updateTeamLinks = async (teamId, linksArray) => {
+  await updateDoc(doc(db, 'teams', teamId), {
+    links: linksArray
+  });
+};
+
+export const updateTeamVault = async (teamId, vaultArray) => {
+  await updateDoc(doc(db, 'teams', teamId), {
+    vault: vaultArray
+  });
 };
 
 /** Send a message in a team chat */
@@ -470,9 +521,16 @@ export const getCommunities = async () => {
 export const createCommunity = async (commData) => {
   const ref = await addDoc(collection(db, 'communities'), {
     ...commData,
-    membersCount: 1,
+    membersCount: commData.memberIds?.length || 1,
     createdAt: serverTimestamp()
   });
+  
+  if (commData.memberIds && commData.memberIds.length > 0) {
+    const creatorId = commData.memberIds[0];
+    await updateDoc(doc(db, 'users', creatorId), {
+      joinedCommunities: arrayUnion(ref.id)
+    });
+  }
   return ref.id;
 };
 
@@ -645,4 +703,30 @@ export const addTeamLink = async (teamId, linkData) => {
     })
   });
 };
+
+// ─────────────────────────────────────────────
+// SAVED EVENTS
+// ─────────────────────────────────────────────
+
+export const toggleSaveEvent = async (userId, eventId) => {
+  const userRef = doc(db, 'users', userId);
+  const userDoc = await getDoc(userRef);
+  if (!userDoc.exists()) return;
+  const saved = userDoc.data().savedEvents || [];
+  if (saved.includes(eventId)) {
+    await updateDoc(userRef, { savedEvents: arrayRemove(eventId) });
+  } else {
+    await updateDoc(userRef, { savedEvents: arrayUnion(eventId) });
+  }
+};
+
+export const getUserSavedEvents = async (userId) => {
+  const userDoc = await getDoc(doc(db, 'users', userId));
+  if (!userDoc.exists()) return [];
+  const eventIds = userDoc.data().savedEvents || [];
+  if (eventIds.length === 0) return [];
+  const events = await Promise.all(eventIds.map((id) => getEvent(id)));
+  return events.filter(Boolean);
+};
+
 

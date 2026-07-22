@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Check, 
@@ -17,7 +17,9 @@ import {
   CheckSquare,
   Sparkles,
   Loader2,
-  QrCode
+  QrCode,
+  Zap,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getEvent, getEventRegistration, getUserCertificateForEvent, getAssessment, submitAssessment, updateUserProfile } from '../firebase/firestore';
@@ -26,7 +28,11 @@ import SubmissionManager from '../components/SubmissionManager';
 export default function EventTimeline() {
   const { id: eventId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser } = useAuth();
+
+  const justRegistered = location.state?.justRegistered || false;
+  const [showWelcomeModal, setShowWelcomeModal] = useState(justRegistered);
 
   const [event, setEvent] = useState(null);
   const [registration, setRegistration] = useState(null);
@@ -64,6 +70,43 @@ export default function EventTimeline() {
     if (!currentUser || !eventId) return;
     const fetchData = async () => {
       try {
+        if (eventId && eventId.startsWith('mock')) {
+          const mockData = {
+            id: eventId,
+            title: eventId === 'mock1' ? 'Web3 Security Workshop' : eventId === 'mock2' ? 'Solidity Advanced Assessment' : 'Orin Community Hackathon',
+            category: 'Conference',
+            level: 'Intermediate',
+            date: new Date(Date.now() + 5 * 86400000).toISOString(),
+            endDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+            format: 'Online',
+            registeredCount: 342,
+            maxCapacity: 500,
+            certificate: 'Yes',
+            isTeamEvent: eventId === 'mock3',
+            description: 'A comprehensive educational event and competition for student developers.',
+            venue: 'Virtual Room',
+            eligibility: 'Open to all students',
+            teamSize: '1 - 4 members',
+            prizes: [
+              { label: 'Winner', value: '₹50,000' }
+            ],
+            skills: ['Blockchain', 'Security', 'React'],
+            schedule: [
+              { day: 'Day 1', time: '10:00 AM', title: 'Introduction', desc: 'Orientation session' }
+            ],
+            faqs: [
+              { q: 'Is it free?', a: 'Yes, it is completely free.' }
+            ],
+            organizer: 'Orin Community',
+            currentRoundIndex: eventId === 'mock1' ? 1 : eventId === 'mock2' ? 2 : 0,
+            rounds: ['Registration', 'Screening', 'Assessment', 'Submission', 'Review', 'Shortlisting', 'Final', 'Results', 'Certification']
+          };
+          setEvent(mockData);
+          setRegistration({ status: 'Approved' });
+          setLoading(false);
+          return;
+        }
+
         const eventData = await getEvent(eventId);
         setEvent(eventData);
 
@@ -96,6 +139,22 @@ export default function EventTimeline() {
   const rounds = event.rounds || [
     'Registration', 'Screening', 'Assessment', 'Submission', 'Review', 'Shortlisting', 'Final', 'Results', 'Certification'
   ];
+
+  const mapRoundToStage = (roundName) => {
+    if (!roundName) return 'Registration';
+    const r = roundName.toLowerCase();
+    if (r.includes('register') || r.includes('screen')) return 'Registration';
+    if (r.includes('assess')) return 'Assessment';
+    if (r.includes('submit') || r.includes('project')) return 'Submission';
+    if (r.includes('review') || r.includes('shortlist') || r.includes('judge')) return 'Review';
+    if (r.includes('final') || r.includes('result') || r.includes('winner')) return 'Results';
+    if (r.includes('certif')) return 'Certification';
+    return 'Registration';
+  };
+
+  const stages = ['Registration', 'Assessment', 'Submission', 'Review', 'Results', 'Certification'];
+  const currentStageName = mapRoundToStage(rounds[currentRoundIndex] || 'Registration');
+  const activeStageIndex = stages.indexOf(currentStageName);
 
   const MCQ_QUESTIONS = [
     {
@@ -189,6 +248,48 @@ export default function EventTimeline() {
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 24px 40px', color: '#1A1A1A' }}>
       
+      {/* Welcome / Screening Modal overlay */}
+      {showWelcomeModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{
+            background: 'var(--surface)', borderRadius: '24px', padding: '40px',
+            width: '100%', maxWidth: '500px', textAlign: 'center',
+            boxShadow: '0 24px 48px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(123, 97, 255, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <Zap size={32} />
+            </div>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '12px' }}>Welcome to the Action Center!</h2>
+            <p style={{ color: 'var(--text-light)', fontSize: '15px', marginBottom: '32px', lineHeight: '1.6' }}>
+              Your registration is confirmed. To secure your spot and unlock the next stages, please proceed to your active tasks.
+            </p>
+            
+            <button 
+              onClick={() => {
+                setShowWelcomeModal(false);
+                if (currentStageName === 'Assessment' || rounds[currentRoundIndex] === 'Screening') {
+                   setShowWorkspace(true);
+                }
+              }}
+              className="btn-primary" 
+              style={{ width: '100%', fontSize: '16px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              Start Active Assessment <ArrowRight size={18} />
+            </button>
+            <button 
+              onClick={() => setShowWelcomeModal(false)}
+              style={{ background: 'none', border: 'none', color: 'var(--muted-light)', fontSize: '14px', marginTop: '16px', cursor: 'pointer', fontWeight: '600' }}
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 0 16px' }}>
         <button 
@@ -215,7 +316,7 @@ export default function EventTimeline() {
         </span>
         <h1 style={{ fontSize: '28px', fontWeight: '800', marginTop: '12px', marginBottom: '8px' }}>{event.title}</h1>
         <p style={{ opacity: 0.9, fontSize: '14px' }}>
-          Current Phase: <strong>{rounds[currentRoundIndex]}</strong>
+          Current Phase: <strong>{rounds[currentRoundIndex]} ({currentStageName} Stage)</strong>
         </p>
       </div>
 
@@ -231,9 +332,9 @@ export default function EventTimeline() {
             <div style={{ position: 'absolute', top: '8px', bottom: '8px', left: '6px', width: '2px', background: '#E9ECEF' }} />
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {rounds.map((round, idx) => {
-                const isCompleted = idx < currentRoundIndex;
-                const isActive = idx === currentRoundIndex;
+              {stages.map((stage, idx) => {
+                const isCompleted = idx < activeStageIndex;
+                const isActive = idx === activeStageIndex;
 
                 let dotColor = '#E9ECEF';
                 let textColor = '#6C757D';
@@ -269,12 +370,12 @@ export default function EventTimeline() {
                     </div>
 
                     <div style={{ fontSize: '14px', fontWeight: isActive ? '800' : '600', color: textColor }}>
-                      {round}
+                      {stage}
                     </div>
                     
                     {isActive && (
                       <div style={{ fontSize: '12px', color: 'var(--text-light)', marginTop: '4px' }}>
-                        Active competition stage. See details to the right.
+                        Active: {rounds[currentRoundIndex]} phase.
                       </div>
                     )}
                   </div>
@@ -401,7 +502,7 @@ export default function EventTimeline() {
           )}
 
           {/* Future Stage Indicator */}
-          {registration?.status === 'Approved' && currentRoundIndex < 2 && (
+          {registration?.status === 'Approved' && activeStageIndex < 1 && (
             <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border-light)', padding: '24px', textAlign: 'center' }}>
               <Lock size={28} color="#6C757D" style={{ margin: '0 auto 12px' }} />
               <h4 style={{ fontWeight: '700', fontSize: '14px', marginBottom: '8px' }}>Assessment & Submission Locked</h4>

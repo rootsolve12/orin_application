@@ -202,28 +202,14 @@ export default function Signup() {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #F5F3FF 0%, #FCFCFD 50%, #EFF6FF 100%)',
-      padding: '40px 24px',
-      fontFamily: 'Inter, sans-serif'
-    }}>
+    <div className="signup-container">
       
       {/* Brand logo header */}
       <div style={{
         position: 'absolute', top: '32px', display: 'flex', alignItems: 'center', gap: '10px', 
         fontWeight: '800', fontSize: '22px', color: '#1A1A1A', letterSpacing: '-0.5px'
       }}>
-        <div style={{ 
-          width: 38, height: 38, backgroundColor: '#7B61FF', borderRadius: 12, 
-          display: 'flex', alignItems: 'center', justifyContent: 'center', 
-          color: 'white', fontSize: 20, fontWeight: '900',
-          boxShadow: '0 4px 12px rgba(123, 97, 255, 0.3)'
-        }}>O</div>
+        <img src="/master_icon.png" alt="Orin Logo" style={{ width: 38, height: 38, borderRadius: 12, objectFit: 'contain', boxShadow: '0 4px 12px rgba(123, 97, 255, 0.3)' }} />
         <span>Orin</span>
       </div>
 
@@ -250,16 +236,7 @@ export default function Signup() {
       </div>
 
       {/* Main glassmorphic wrapper card */}
-      <div style={{
-        width: '100%', 
-        maxWidth: '450px', 
-        background: 'white',
-        padding: '36px', 
-        borderRadius: '24px', 
-        border: '1px solid #E9ECEF',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.03)',
-        boxSizing: 'border-box'
-      }}>
+      <div className="signup-card">
         
         {error && (
           <div style={{ 
@@ -373,7 +350,7 @@ export default function Signup() {
                     </div>
                     
                     {/* Requirements checklist */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '6px', marginTop: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: checks.length ? '#10B981' : '#868E96', fontWeight: '600' }}>
                         <Check size={10} strokeWidth={3} /> Min. 6 chars
                       </div>
