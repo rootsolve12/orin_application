@@ -1,0 +1,40 @@
+name: Backend API Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        working-directory: ./backend
+        run: npm ci || npm install
+
+      - name: Run Comprehensive Backend Suite
+        working-directory: ./backend
+        id: backend-tests
+        run: npm run test
+        continue-on-error: true
+
+      - name: Retry Failed Tests
+        if: steps.backend-tests.outcome == 'failure'
+        working-directory: ./backend
+        run: |
+          echo "Initial run failed, attempting 1 retry..."
+          npm run test
