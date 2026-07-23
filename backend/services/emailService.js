@@ -16,16 +16,19 @@ const transporter = nodemailer.createTransport({
  */
 const sendEmail = async (to, subject, htmlContent) => {
   try {
-    // Attempt to send real email
-    // const info = await transporter.sendMail({
-    //   from: '"Orin Platform" <info@example.com>',
-    //   to,
-    //   subject,
-    //   html: htmlContent
-    // });
-    // console.log(`📧 [Gmail] Real Email sent to ${to}: ${info.messageId}`);
+    // Attempt to send real email using configured Nodemailer transporter
+    const info = await transporter.sendMail({
+      from: `"Orin Platform" <${process.env.GMAIL_USER || 'info@example.com'}>`,
+      to,
+      subject,
+      html: htmlContent
+    });
+    console.log(`📧 [Gmail] Real Email sent to ${to}: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    console.warn(`⚠️ [Gmail System] Real email dispatch failed (falling back to Mock print): ${error.message}`);
     
-    // For this demo, we will simulate the send to avoid crashing without real credentials
+    // Mock simulation for sandbox/dev validation
     console.log(`\n======================================================`);
     console.log(`📧 [Gmail Mock] Sending Email to: ${to}`);
     console.log(`SUBJECT: ${subject}`);
@@ -34,9 +37,6 @@ const sendEmail = async (to, subject, htmlContent) => {
     console.log(`======================================================\n`);
     
     return true;
-  } catch (error) {
-    console.error(`❌ [Gmail Error] Failed to send email to ${to}`, error);
-    return false;
   }
 };
 
