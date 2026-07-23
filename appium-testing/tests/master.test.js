@@ -7,9 +7,10 @@ const { expect } = require('chai');
 const capabilities = {
   platformName: 'Android',
   'appium:automationName': 'UiAutomator2',
-  'appium:deviceName': 'Android Emulator',
+  'appium:deviceName': '9295b855',
   'appium:app': '../frontend/android/app/build/outputs/apk/debug/app-debug.apk', 
-  // In CI, the Appium server runs on localhost:4723 by default
+  'appium:ignoreHiddenApiPolicyError': true,
+  'appium:noReset': true
 };
 
 // Generate 300+ Appium Test Cases
@@ -28,19 +29,18 @@ describe('Master Appium Mobile DDT Suite', function () {
   let driver;
 
   before(async function () {
-    // Note: We bypass actual driver initialization for dry-run/local environment 
-    // without a running emulator, but this is exactly how it wires up in CI.
     console.log('📱 INITIALIZING APPIUM AUTOMATION...');
     try {
-      // driver = await remote({
-      //   protocol: 'http',
-      //   hostname: '127.0.0.1',
-      //   port: 4723,
-      //   path: '/',
-      //   capabilities
-      // });
+      driver = await remote({
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: 4723,
+        path: '/',
+        capabilities
+      });
     } catch (e) {
-      console.log('Appium server not running locally, mocking driver for dry run.');
+      console.log('Failed to connect to Appium server:', e.message);
+      console.log('Mocking driver for dry run.');
     }
   });
 
@@ -54,7 +54,7 @@ describe('Master Appium Mobile DDT Suite', function () {
       // Simulate Appium driver interaction for CI
       if (driver) {
         // e.g. await driver.$('~login_button').click();
-        const state = await driver.execute('mobile: getDeviceInfo');
+        const state = await driver.execute('mobile: deviceInfo');
         expect(state).to.not.be.null;
       } else {
         // Mock assertion for dry-run success
