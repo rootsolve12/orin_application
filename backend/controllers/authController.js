@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const emailService = require('../services/emailService');
 
 exports.login = (req, res) => {
   const { email, password } = req.body;
@@ -28,4 +29,19 @@ exports.login = (req, res) => {
     res.status(400).json({ success: false, message: 'Email and password required' });
   }
 };
+
+exports.sendOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, message: 'Email and OTP required' });
+  }
+  
+  const success = await emailService.sendOtpVerification(email, otp);
+  if (success) {
+    res.json({ success: true, message: 'OTP sent successfully' });
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to send OTP' });
+  }
+};
+
 

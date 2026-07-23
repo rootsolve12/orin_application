@@ -79,3 +79,20 @@ exports.sendCertificateGenerated = async (userEmail, eventTitle, certificateId) 
   `;
   return sendEmail(userEmail, subject, html);
 };
+
+exports.sendOtpVerification = async (userEmail, otp) => {
+  const subject = `Your Orin OTP Verification Code`;
+  const html = `
+    <h2>Welcome to Orin! 🚀</h2>
+    <p>Please use the following One-Time Password (OTP) to verify your email address:</p>
+    <div style="background: #F1F3F5; padding: 16px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; text-align: center; color: #7B61FF; margin: 20px 0;">
+      ${otp}
+    </div>
+    <p>This code is valid for 10 minutes. If you did not request this code, please ignore this email.</p>
+    <br/>
+    <p>Best regards,</p>
+    <p>The Orin Team</p>
+  `;
+  return sendEmail(userEmail, subject, html);
+};
+

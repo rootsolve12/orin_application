@@ -18,6 +18,7 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Communities from './pages/Communities';
 import Support from './pages/Support';
 import CertificateVerify from './pages/CertificateVerify';
+import VerifyEmail from './pages/VerifyEmail';
 import Settings from './pages/Settings';
 import Certificates from './pages/Certificates';
 import Portfolio from './pages/Portfolio';
@@ -42,6 +43,13 @@ export default function App() {
               <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
               <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
               <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+
+              {/* ── Email Verification: auth required, skips onboarding & verification guard ── */}
+              <Route path="/verify-email" element={
+                <ProtectedRoute requireVerification={false} requireOnboarding={false}>
+                  <VerifyEmail />
+                </ProtectedRoute>
+              } />
 
               {/* ── Onboarding: auth required, skips onboarding guard ── */}
               <Route path="/onboarding" element={

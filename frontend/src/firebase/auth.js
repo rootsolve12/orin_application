@@ -34,6 +34,7 @@ export const signUpWithEmail = async (email, password, displayName) => {
     role: 'participant',
     createdAt: serverTimestamp(),
     onboardingComplete: false,
+    emailVerified: false,
     skills: [],
     eventsJoined: 0,
     certificates: 0,
