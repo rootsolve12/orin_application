@@ -12,6 +12,36 @@ import { doc, getDoc } from 'firebase/firestore';
 export default function Profile() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case 'web': return 'Web Developer 🌐';
+      case 'mobile': return 'Mobile Developer 📱';
+      case 'ai_data': return 'Data Scientist / AI 📊';
+      case 'design': return 'UI/UX Designer 🎨';
+      case 'security': return 'Security Engineer 🔒';
+      default: return 'Developer 💻';
+    }
+  };
+
+  const getExperienceLabel = (exp) => {
+    switch (exp) {
+      case 'novice': return 'Novice / Learner 🌱';
+      case 'builder': return 'Intermediate Builder 🛠️';
+      case 'veteran': return 'Hackathon Veteran 🏆';
+      case 'expert': return 'Experienced Specialist 🧠';
+      default: return 'Builder ⚡';
+    }
+  };
+
+  const getTeamLabel = (style) => {
+    switch (style) {
+      case 'solo': return 'Solo Hacker 🧑‍💻';
+      case 'player': return 'Team Player 👥';
+      case 'leader': return 'Team Leader 👑';
+      default: return 'Collaborator 🤝';
+    }
+  };
   
   const [profileData, setProfileData] = useState(null);
   const [registrations, setRegistrations] = useState([]);
@@ -148,56 +178,30 @@ export default function Profile() {
   }
 
   // Dynamic Data & Fallbacks
-  const displayName = profileData?.displayName || currentUser?.displayName || 'quizhb45';
-  const email = currentUser?.email || 'quizhb45@example.com';
-  const location = profileData?.location || 'Chennai, India';
-  const institution = profileData?.institution || 'Simats University';
-  const bio = profileData?.bio || 'Passionate student developer specializing in Decentralized Systems, Frontend Engineering, and Security. Enjoys building open-source prototypes and competing in developer hackathons.';
+  const displayName = profileData?.displayName || currentUser?.displayName || 'Student Developer';
+  const email = currentUser?.email || '';
+  const location = profileData?.location || 'Not Specified';
+  const institution = profileData?.institution || 'Not Specified';
+  const bio = profileData?.bio || 'No bio added yet. Click the edit pencil to introduce yourself!';
   
   const professionalLinks = {
-    linkedin: profileData?.professionalLinks?.linkedin || 'https://linkedin.com/in/quizhb45',
-    github: profileData?.professionalLinks?.github || 'https://github.com/quizhb45',
-    leetcode: profileData?.professionalLinks?.leetcode || 'https://leetcode.com/quizhb45',
-    kaggle: profileData?.professionalLinks?.kaggle || 'https://kaggle.com/quizhb45',
-    portfolio: profileData?.professionalLinks?.portfolio || 'https://quizhb45.dev'
+    linkedin: profileData?.linkedin || profileData?.professionalLinks?.linkedin || '',
+    github: profileData?.github || profileData?.professionalLinks?.github || '',
+    leetcode: profileData?.professionalLinks?.leetcode || '',
+    kaggle: profileData?.professionalLinks?.kaggle || '',
+    portfolio: profileData?.professionalLinks?.portfolio || ''
   };
 
-  const skills = profileData?.skillsWithLevel || [
-    { name: 'Python', level: 'Intermediate', growth: '+5%' },
-    { name: 'React', level: 'Beginner', growth: '+8%' },
-    { name: 'Java', level: 'Beginner', growth: '+2%' }
-  ];
+  const skills = profileData?.skillsWithLevel || [];
 
-  const projects = profileData?.projects !== undefined ? profileData.projects : [
-    {
-      title: 'Decentralized Identity Vault',
-      category: 'Featured Work',
-      description: 'A zero-knowledge proofs identity management vault built using React, Solidity, and ethers.js.',
-      link: 'https://github.com/quizhb45/identity-vault',
-      tech: ['React', 'Solidity', 'Web3', 'Cryptography']
-    },
-    {
-      title: 'Automated Code Plagiarism Checker',
-      category: 'Recent Projects',
-      description: 'An AI-powered AST-parsing similarity checker designed for grading code submissions.',
-      link: 'https://github.com/quizhb45/plag-checker',
-      tech: ['Python', 'AST', 'NLP', 'FastAPI']
-    },
-    {
-      title: 'Secure Smart Contract Auditing Framework',
-      category: 'Research Contributions',
-      description: 'A research prototype evaluating static analysis checkers for DeFi smart contracts.',
-      link: 'https://github.com/quizhb45/contract-auditor',
-      tech: ['Python', 'Solidity', 'Static Analysis', 'Research']
-    }
-  ];
+  const projects = profileData?.projects !== undefined ? profileData.projects : [];
 
   // Derived Metrics
-  const eventsParticipated = registrations.length || 3;
-  const eventsCompletedCount = detailedEvents.filter(de => de.event?.status === 'Completed' || de.submission?.status === 'Shortlisted').length || 1;
-  const assessmentsCompletedCount = detailedEvents.filter(de => de.assessment).length || 2;
-  const projectsSubmittedCount = detailedEvents.filter(de => de.submission).length || 2;
-  const communitiesJoinedCount = profileData?.joinedCommunities?.length || 2;
+  const eventsParticipated = registrations.length || 0;
+  const eventsCompletedCount = detailedEvents.filter(de => de.event?.status === 'Completed' || de.submission?.status === 'Shortlisted').length || 0;
+  const assessmentsCompletedCount = detailedEvents.filter(de => de.assessment).length || 0;
+  const projectsSubmittedCount = detailedEvents.filter(de => de.submission).length || 0;
+  const communitiesJoinedCount = profileData?.joinedCommunities?.length || 0;
 
   // Profile Strength Calculator
   const checkListItems = [
@@ -463,8 +467,21 @@ export default function Profile() {
             <h1 style={{ fontSize: '26px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               {displayName} <Sparkles size={20} color="#FFD700" fill="#FFD700" />
             </h1>
-            <p style={{ opacity: 0.9, fontSize: '14px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <MapPin size={14} /> {institution} &bull; {location}
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+              <span style={{ fontSize: '11px', background: 'rgba(255, 255, 255, 0.25)', padding: '4px 12px', borderRadius: '12px', fontWeight: '700' }}>
+                {getRoleLabel(profileData?.developerRole)}
+              </span>
+              <span style={{ fontSize: '11px', background: 'rgba(255, 255, 255, 0.25)', padding: '4px 12px', borderRadius: '12px', fontWeight: '700' }}>
+                {getExperienceLabel(profileData?.experienceLevel)}
+              </span>
+              <span style={{ fontSize: '11px', background: 'rgba(255, 255, 255, 0.25)', padding: '4px 12px', borderRadius: '12px', fontWeight: '700' }}>
+                {getTeamLabel(profileData?.teamStyle)}
+              </span>
+            </div>
+
+            <p style={{ opacity: 0.9, fontSize: '14px', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MapPin size={14} /> {location}
             </p>
             <p style={{ opacity: 0.7, fontSize: '12px', marginTop: '2px' }}>{email}</p>
           </div>
