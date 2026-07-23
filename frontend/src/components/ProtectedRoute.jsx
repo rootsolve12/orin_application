@@ -10,21 +10,14 @@ import { useAuth } from '../contexts/AuthContext';
  * redirect decisions. While Firebase resolves auth state, currentUser is
  * null even for signed-in users — causing a false redirect to /login.
  */
-export function ProtectedRoute({ children, requireOnboarding = true, requireVerification = true }) {
-  const { currentUser, userProfile, onboardingComplete, loading } = useAuth();
+export function ProtectedRoute({ children, requireOnboarding = true }) {
+  const { currentUser, onboardingComplete, loading } = useAuth();
 
   // ⏳ Still resolving Firebase auth — don't redirect yet
   if (loading) return null;
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
-  }
-
-  if (requireVerification) {
-    const emailVerified = userProfile?.emailVerified === true;
-    if (!emailVerified) {
-      return <Navigate to="/verify-email" replace />;
-    }
   }
 
   if (requireOnboarding && !onboardingComplete) {
@@ -39,16 +32,12 @@ export function ProtectedRoute({ children, requireOnboarding = true, requireVeri
  * Also waits for loading to finish before making redirect decisions.
  */
 export function GuestRoute({ children }) {
-  const { currentUser, userProfile, onboardingComplete, loading } = useAuth();
+  const { currentUser, onboardingComplete, loading } = useAuth();
 
   // ⏳ Still resolving Firebase auth — don't redirect yet
   if (loading) return null;
 
   if (currentUser) {
-    const emailVerified = userProfile?.emailVerified === true;
-    if (!emailVerified) {
-      return <Navigate to="/verify-email" replace />;
-    }
     return <Navigate to={onboardingComplete ? '/' : '/onboarding'} replace />;
   }
 
