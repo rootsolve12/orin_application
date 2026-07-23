@@ -4,7 +4,7 @@
   "description": "Appium E2E test suite for Orin Mobile",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests/master.test.js --timeout 600000 --exit"
+    "test": "mocha tests/master.test.js --timeout 600000 --reporter mochawesome --reporter-options reportDir=reports/html,reportFilename=orin-appium-report.html --exit"
   },
   "dependencies": {
     "appium": "^2.5.1",
@@ -13,6 +13,7 @@
     "webdriverio": "^8.36.0"
   },
   "devDependencies": {
-    "appium-uiautomator2-driver": "^2.34.2"
+    "appium-uiautomator2-driver": "^2.34.2",
+    "mochawesome": "^7.1.3"
   }
 }
