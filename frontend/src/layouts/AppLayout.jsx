@@ -18,7 +18,13 @@ export default function AppLayout({ children }) {
   const hideNavRoutes = ['/login', '/signup', '/forgot-password', '/onboarding'];
   const isAuthRoute = hideNavRoutes.includes(location.pathname);
 
-  const bottomNavItems = [
+  const isOrganizer = userProfile?.role === 'organizer';
+
+  const bottomNavItems = isOrganizer ? [
+    { path: '/', icon: <Home size={24} />, label: 'Dashboard' },
+    { path: '/organizer', icon: <Briefcase size={24} />, label: 'Manage' },
+    { path: '/profile', icon: <User size={24} />, label: 'Profile' },
+  ] : [
     { path: '/', icon: <Home size={24} />, label: 'Home' },
     { path: '/explore', icon: <Search size={24} />, label: 'Explore' },
     { path: '/communities', icon: <Users size={24} />, label: 'Community' },
@@ -26,9 +32,12 @@ export default function AppLayout({ children }) {
     { path: '/profile', icon: <User size={24} />, label: 'Profile' },
   ];
 
-  const drawerItems = [
+  const drawerItems = isOrganizer ? [
+    { path: '/organizer', icon: <Briefcase size={20} />, label: 'Organizer Panel' },
+    { path: '/support', icon: <HelpCircle size={20} />, label: 'Help & Support' },
+    { path: '/settings', icon: <Shield size={20} />, label: 'Settings' },
+  ] : [
     { path: '/team', icon: <Users size={20} />, label: 'Team Workspace' },
-    { path: '/organizer', icon: <Briefcase size={20} />, label: 'Organizer Tools' },
     { path: '/certificates', icon: <Award size={20} />, label: 'My Certificates' },
     { path: '/my-registrations', icon: <Bookmark size={20} />, label: 'My Registrations' },
     { path: '/saved-events', icon: <Bookmark size={20} />, label: 'Saved Events' },

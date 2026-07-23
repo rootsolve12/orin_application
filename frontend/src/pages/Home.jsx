@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Calendar, Award, Users, TrendingUp, ChevronRight, 
   Zap, Clock, Target, MessageSquare, 
-  GraduationCap, Flame, Compass, Users2, ArrowRight
+  GraduationCap, Flame, Compass, Users2, ArrowRight, Plus, QrCode, AlertCircle, FileText
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getAllEvents, getUserRegistrations } from '../firebase/firestore';
+import { getAllEvents, getUserRegistrations, getOrganizerEvents } from '../firebase/firestore';
 import EventCard from '../components/EventCard';
 
 const MOCK_FALLBACK_EVENTS = [
@@ -59,6 +59,10 @@ export default function Home() {
     || currentUser?.displayName?.split(' ')[0] 
     || 'Developer';
 
+  const isOrganizer = userProfile?.role === 'organizer';
+  const [organizerEvents, setOrganizerEvents] = useState([]);
+  const [organizerLoading, setOrganizerLoading] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,14 +72,21 @@ export default function Home() {
         ]);
         setDbEvents(data);
         setRegistrations(regs);
+
+        if (currentUser && userProfile?.role === 'organizer') {
+          setOrganizerLoading(true);
+          const orgData = await getOrganizerEvents(currentUser.uid);
+          setOrganizerEvents(orgData);
+        }
       } catch (err) {
         console.error('Firebase Error:', err);
       } finally {
         setLoading(false);
+        setOrganizerLoading(false);
       }
     };
     fetchData();
-  }, [currentUser]);
+  }, [currentUser, userProfile]);
 
   // --- Memoized Dynamic Feed Categorization Arrays ---
   const userSkills = userProfile?.skills || ['React', 'JavaScript', 'Python'];
@@ -315,6 +326,179 @@ export default function Home() {
   );
 
 
+
+  if (isOrganizer) {
+    const totalRegistrations = organizerEvents.reduce((acc, curr) => acc + (curr.registeredCount || 0), 0);
+    const completedEvents = organizerEvents.filter(e => e.status === 'Completed').length;
+    const activeEvents = organizerEvents.filter(e => e.status !== 'Completed').length;
+
+    return (
+      <div className="custom-scroll" style={{ padding: isMobile ? '16px 12px' : '32px 24px', maxWidth: '1200px', margin: '0 auto', background: 'transparent', minHeight: '100vh', color: '#1D2939', position: 'relative' }}>
+        {/* Decorative Pastel Background Blobs */}
+        <div className="bg-blob-purple" style={{ top: '5%', left: '-5%' }} />
+        <div className="bg-blob-blue" style={{ top: '35%', right: '-5%' }} />
+        <div className="bg-blob-pink" style={{ bottom: '15%', left: '25%' }} />
+        
+        {/* Welcome Header */}
+        <div className="glass-panel animate-fade-in-up" style={{
+          background: 'linear-gradient(135deg, rgba(245, 243, 255, 0.8) 0%, rgba(240, 249, 255, 0.8) 50%, rgba(255, 241, 242, 0.7) 100%)',
+          padding: isMobile ? '24px 20px' : '36px 44px',
+          marginBottom: '32px', position: 'relative', overflow: 'hidden',
+          border: '1px solid rgba(255, 255, 255, 0.5)',
+          boxShadow: '0 10px 40px rgba(127, 86, 217, 0.05)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: '800', fontSize: '13px', letterSpacing: '-0.1px', marginBottom: '16px' }}>
+            <Sparkles size={16} color="var(--primary)" fill="var(--primary)" />
+            Organizer Workspace Verified
+          </div>
+          <h1 style={{ fontSize: isMobile ? '22px' : '32px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-light)', letterSpacing: '-0.8px' }}>
+            Welcome back, {firstName}! 👑
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--muted-light)', maxWidth: '640px', lineHeight: '1.5', fontWeight: '500' }}>
+            Manage registrations, evaluate submissions, publish hackathons, and coordinate participant updates for your developer communities.
+          </p>
+        </div>
+
+        {/* Dashboard Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+          {[
+            { label: 'Total Events Hosted', value: organizerEvents.length, icon: <Calendar size={24} color="#7B61FF" />, bg: '#F3E8FF' },
+            { label: 'Active Hackathons', value: activeEvents, icon: <TrendingUp size={24} color="#10B981" />, bg: '#ECFDF5' },
+            { label: 'Completed Challenges', value: completedEvents, icon: <Award size={24} color="#F59E0B" />, bg: '#FEF3C7' },
+            { label: 'Registered Attendees', value: totalRegistrations, icon: <Users size={24} color="#EF4444" />, bg: '#FEE2E2' }
+          ].map((stat, idx) => (
+            <div key={idx} className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', background: 'white' }}>
+              <div style={{ padding: '16px', borderRadius: '16px', background: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {stat.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: '#1E293B', letterSpacing: '-1px' }}>{stat.value}</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted-light)', fontWeight: '600', marginTop: '2px' }}>{stat.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Organizer Quick Actions & Events List */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '24px', alignItems: 'flex-start' }}>
+          
+          {/* Main List: Hosted Events */}
+          <div className="glass-panel" style={{ padding: '24px', background: 'white' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FileText size={20} color="var(--primary)" /> Your Hosted Events
+            </h2>
+            
+            {organizerLoading ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#64748B' }}>Loading events...</div>
+            ) : organizerEvents.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: '#64748B', border: '2px dashed #E2E8F0', borderRadius: '16px' }}>
+                <Calendar size={36} color="#94A3B8" style={{ marginBottom: '12px' }} />
+                <div style={{ fontWeight: '700', color: '#334155', marginBottom: '4px' }}>No events hosted yet</div>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px' }}>Get started by creating your first challenge or hackathon!</p>
+                <button onClick={() => navigate('/organizer')} style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
+                  Create Event
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {organizerEvents.map(event => {
+                  const capacityPercent = Math.min(Math.round(((event.registeredCount || 0) / (event.maxCapacity || 100)) * 100), 100);
+                  return (
+                    <div 
+                      key={event.id}
+                      onClick={() => navigate('/organizer')}
+                      style={{ 
+                        border: '1px solid #E2E8F0', borderRadius: '16px', padding: '16px', cursor: 'pointer',
+                        transition: 'all 0.2s', background: 'white'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = '#7B61FF'}
+                      onMouseLeave={(e) => e.currentTarget.style.borderColor = '#E2E8F0'}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                        <div>
+                          <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', margin: 0 }}>{event.title}</h3>
+                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>{event.category} &bull; {event.mode}</span>
+                        </div>
+                        <span style={{ 
+                          fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px',
+                          background: event.status === 'Completed' ? '#F1F5F9' : '#ECFDF5',
+                          color: event.status === 'Completed' ? '#64748B' : '#059669'
+                        }}>
+                          {event.status || 'Active'}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#64748B', marginTop: '12px', marginBottom: '4px', fontWeight: '600' }}>
+                        <span>Capacity Filled</span>
+                        <span>{event.registeredCount || 0} / {event.maxCapacity || 100} ({capacityPercent}%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${capacityPercent}%`, height: '100%', background: 'linear-gradient(90deg, #7B61FF, #A78BFA)', borderRadius: '3px' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar: Quick Organizer Tools */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+            <div className="glass-panel" style={{ padding: '24px', background: 'white' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 16px' }}>
+                <Zap size={16} color="var(--primary)" strokeWidth={2.5} /> Organizer Actions
+              </h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <button
+                  onClick={() => navigate('/organizer')}
+                  style={{
+                    width: '100%', padding: '14px', background: 'linear-gradient(135deg, #7B61FF, #9D88FF)',
+                    color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '14px',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    boxShadow: '0 4px 12px rgba(123, 97, 255, 0.2)', minHeight: '44px'
+                  }}
+                >
+                  <Plus size={16} /> Create New Event
+                </button>
+                <button
+                  onClick={() => navigate('/organizer')}
+                  style={{
+                    width: '100%', padding: '14px', background: '#F8FAFC',
+                    color: '#334155', border: '1px solid #E2E8F0', borderRadius: '12px', fontWeight: '700', fontSize: '14px',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '44px'
+                  }}
+                >
+                  <QrCode size={16} /> Scan QR Attendance
+                </button>
+                <button
+                  onClick={() => navigate('/organizer')}
+                  style={{
+                    width: '100%', padding: '14px', background: '#FFF5F5',
+                    color: '#E53E3E', border: '1px solid #FED7D7', borderRadius: '12px', fontWeight: '700', fontSize: '14px',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '44px'
+                  }}
+                >
+                  <AlertCircle size={16} /> Broadcast Emergency Alert
+                </button>
+              </div>
+            </div>
+
+            <div className="glass-panel" style={{ padding: '20px 24px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>Verified Organizer Info</h4>
+              <p style={{ fontSize: '12px', color: '#64748B', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>
+                As a verified Orin organizer, you have permission to launch hackathons, issue blockchain credentials, track attendance codes, and query submissions. Contact help desk to configure advanced rubrics.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div className="custom-scroll" style={{ padding: isMobile ? '16px 12px' : '32px 24px', maxWidth: '1200px', margin: '0 auto', background: 'transparent', minHeight: '100vh', color: '#1D2939', position: 'relative' }}>

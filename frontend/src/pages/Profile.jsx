@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserProfile, getUserRegistrations, getUserCertificates, updateUserProfile } from '../firebase/firestore';
+import { getUserProfile, getUserRegistrations, getUserCertificates, updateUserProfile, getOrganizerEvents } from '../firebase/firestore';
 import { db } from '../firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -47,6 +47,7 @@ export default function Profile() {
   const [registrations, setRegistrations] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [detailedEvents, setDetailedEvents] = useState([]);
+  const [organizerEvents, setOrganizerEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -103,6 +104,15 @@ export default function Profile() {
           setProfileData(profile);
           setRegistrations(regs);
           setCertificates(certs);
+
+          if (profile?.role === 'organizer') {
+            try {
+              const orgEvts = await getOrganizerEvents(currentUser.uid);
+              setOrganizerEvents(orgEvts);
+            } catch (err) {
+              console.error("Error fetching organizer events:", err);
+            }
+          }
 
           // Populate edit states
           setEditedLinks({
@@ -202,6 +212,8 @@ export default function Profile() {
   const assessmentsCompletedCount = detailedEvents.filter(de => de.assessment).length || 0;
   const projectsSubmittedCount = detailedEvents.filter(de => de.submission).length || 0;
   const communitiesJoinedCount = profileData?.joinedCommunities?.length || 0;
+
+  const isOrganizer = profileData?.role === 'organizer';
 
   // Profile Strength Calculator
   const checkListItems = [
@@ -530,127 +542,131 @@ export default function Profile() {
             </p>
           </div>
 
-          {/* 5. Academic Reputation Metrics */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Reputation Center</h3>
-              <button onClick={() => setIsEditReputationModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}><Edit2 size={16} /></button>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Contributor Rank */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Star size={16} color="#FFD700" fill="#FFD700" />
-                  <span style={{ fontSize: '13px', fontWeight: '600' }}>Contributor Rank</span>
+          {!isOrganizer && (
+            <>
+              {/* 5. Academic Reputation Metrics */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Reputation Center</h3>
+                  <button onClick={() => setIsEditReputationModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}><Edit2 size={16} /></button>
                 </div>
-                <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-light)' }}>Rank #{contributorRank}</span>
-              </div>
-
-              {/* Participation Score */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
-                  <span>Participation Score</span>
-                  <span>{participationScore}%</span>
-                </div>
-                <div style={{ width: '100%', height: '6px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ width: `${participationScore}%`, height: '100%', background: '#7B61FF', borderRadius: '3px' }} />
-                </div>
-              </div>
-
-              {/* Skill Score */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
-                  <span>Skill Score</span>
-                  <span>{skillScore}%</span>
-                </div>
-                <div style={{ width: '100%', height: '6px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ width: `${skillScore}%`, height: '100%', background: '#3B82F6', borderRadius: '3px' }} />
-                </div>
-              </div>
-
-              {/* Consistency Score */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
-                  <span>Consistency Score</span>
-                  <span>{consistencyScore}%</span>
-                </div>
-                <div style={{ width: '100%', height: '6px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ width: `${consistencyScore}%`, height: '100%', background: '#10B981', borderRadius: '3px' }} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 6. Skills Progress Tracking */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Skills Progress</h3>
-              <button 
-                onClick={() => setIsAddSkillModalOpen(true)}
-                style={{ 
-                  background: 'rgba(123, 97, 255, 0.08)', 
-                  border: 'none', 
-                  color: 'var(--primary)', 
-                  borderRadius: '50%', 
-                  width: '44px', 
-                  height: '44px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  cursor: 'pointer' 
-                }}
-              >
-                <Plus size={14} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {skills.map((skill, idx) => (
-                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Contributor Rank */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontWeight: '700' }}>{skill.name}</span>
-                      <button 
-                        onClick={() => handleOpenEditSkill(idx)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', display: 'flex', alignItems: 'center', padding: 0 }}
-                        title="Edit Skill"
-                      >
-                        <Edit2 size={12} />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteSkill(idx)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', padding: 0 }}
-                        title="Remove Skill"
-                      >
-                        <X size={12} />
-                      </button>
+                      <Star size={16} color="#FFD700" fill="#FFD700" />
+                      <span style={{ fontSize: '13px', fontWeight: '600' }}>Contributor Rank</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ 
-                        fontSize: '10px', 
-                        fontWeight: '800', 
-                        background: skill.level === 'Expert' ? '#EBFBEE' : '#EBF8FF', 
-                        color: skill.level === 'Expert' ? '#2B8A3E' : '#1971C2',
-                        padding: '2px 6px',
-                        borderRadius: '6px',
-                        textTransform: 'uppercase'
-                      }}>{skill.level}</span>
-                      <span style={{ fontSize: '10px', color: '#10B981', fontWeight: '800' }}>{skill.growth}</span>
+                    <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-light)' }}>Rank #{contributorRank}</span>
+                  </div>
+
+                  {/* Participation Score */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                      <span>Participation Score</span>
+                      <span>{participationScore}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${participationScore}%`, height: '100%', background: '#7B61FF', borderRadius: '3px' }} />
                     </div>
                   </div>
-                  <div style={{ width: '100%', height: '5px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ 
-                      width: skill.level === 'Expert' ? '90%' : skill.level === 'Advanced' ? '75%' : '50%', 
-                      height: '100%', 
-                      background: 'var(--primary)', 
-                      borderRadius: '3px' 
-                    }} />
+
+                  {/* Skill Score */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                      <span>Skill Score</span>
+                      <span>{skillScore}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${skillScore}%`, height: '100%', background: '#3B82F6', borderRadius: '3px' }} />
+                    </div>
+                  </div>
+
+                  {/* Consistency Score */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                      <span>Consistency Score</span>
+                      <span>{consistencyScore}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${consistencyScore}%`, height: '100%', background: '#10B981', borderRadius: '3px' }} />
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+
+              {/* 6. Skills Progress Tracking */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Skills Progress</h3>
+                  <button 
+                    onClick={() => setIsAddSkillModalOpen(true)}
+                    style={{ 
+                      background: 'rgba(123, 97, 255, 0.08)', 
+                      border: 'none', 
+                      color: 'var(--primary)', 
+                      borderRadius: '50%', 
+                      width: '44px', 
+                      height: '44px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {skills.map((skill, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: '700' }}>{skill.name}</span>
+                          <button 
+                            onClick={() => handleOpenEditSkill(idx)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', display: 'flex', alignItems: 'center', padding: 0 }}
+                            title="Edit Skill"
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteSkill(idx)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', padding: 0 }}
+                            title="Remove Skill"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ 
+                            fontSize: '10px', 
+                            fontWeight: '800', 
+                            background: skill.level === 'Expert' ? '#EBFBEE' : '#EBF8FF', 
+                            color: skill.level === 'Expert' ? '#2B8A3E' : '#1971C2',
+                            padding: '2px 6px',
+                            borderRadius: '6px',
+                            textTransform: 'uppercase'
+                          }}>{skill.level}</span>
+                          <span style={{ fontSize: '10px', color: '#10B981', fontWeight: '800' }}>{skill.growth}</span>
+                        </div>
+                      </div>
+                      <div style={{ width: '100%', height: '5px', background: 'var(--bg-light)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: skill.level === 'Expert' ? '90%' : skill.level === 'Advanced' ? '75%' : '50%', 
+                          height: '100%', 
+                          background: 'var(--primary)', 
+                          borderRadius: '3px' 
+                        }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* 10. Resume and Professional Links */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
@@ -661,18 +677,20 @@ export default function Profile() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {/* Resume */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={16} color="var(--primary)" /> Academic Resume
-                </span>
-                {profileData?.resumeUrl ? (
-                  <a href={profileData.resumeUrl} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                    View <ExternalLink size={10} />
-                  </a>
-                ) : (
-                  <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Not Linked</span>
-                )}
-              </div>
+              {!isOrganizer && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileText size={16} color="var(--primary)" /> Academic Resume
+                  </span>
+                  {profileData?.resumeUrl ? (
+                    <a href={profileData.resumeUrl} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      View <ExternalLink size={10} />
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Not Linked</span>
+                  )}
+                </div>
+              )}
 
               {/* LinkedIn */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
@@ -703,32 +721,36 @@ export default function Profile() {
               </div>
 
               {/* LeetCode */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {renderSocialIcon('leetcode')} LeetCode
-                </span>
-                {professionalLinks.leetcode ? (
-                  <a href={professionalLinks.leetcode} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                    Link <ExternalLink size={10} />
-                  </a>
-                ) : (
-                  <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>Not Linked</span>
-                )}
-              </div>
+              {!isOrganizer && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {renderSocialIcon('leetcode')} LeetCode
+                  </span>
+                  {professionalLinks.leetcode ? (
+                    <a href={professionalLinks.leetcode} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      Link <ExternalLink size={10} />
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>Not Linked</span>
+                  )}
+                </div>
+              )}
 
               {/* Kaggle */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {renderSocialIcon('kaggle')} Kaggle
-                </span>
-                {professionalLinks.kaggle ? (
-                  <a href={professionalLinks.kaggle} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                    Link <ExternalLink size={10} />
-                  </a>
-                ) : (
-                  <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>Not Linked</span>
-                )}
-              </div>
+              {!isOrganizer && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-light)', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {renderSocialIcon('kaggle')} Kaggle
+                  </span>
+                  {professionalLinks.kaggle ? (
+                    <a href={professionalLinks.kaggle} target="_blank" rel="noreferrer" style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: '800', textDecoration: 'underline', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      Link <ExternalLink size={10} />
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>Not Linked</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -736,248 +758,277 @@ export default function Profile() {
 
         {/* RIGHT COLUMN: Journey, Stats, Portfolio, Certificates, Timeline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          {/* 1. Academic Journey Summary Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
-            {[
-              { label: 'Events Joined', value: eventsParticipated, color: '#7B61FF' },
-              { label: 'Events Finished', value: eventsCompletedCount, color: '#10B981' },
-              { label: 'Tests Completed', value: assessmentsCompletedCount, color: '#3B82F6' },
-              { label: 'Workspace Uploads', value: projectsSubmittedCount, color: '#F59E0B' }
-            ].map((stat, idx) => (
-              <div key={idx} style={{ 
-                background: 'white', 
-                border: '1px solid var(--border-light)', 
-                borderRadius: '16px', 
-                padding: '16px',
-                textAlign: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.01)'
-              }}>
-                <span style={{ fontSize: '26px', fontWeight: '800', color: stat.color, display: 'block', marginBottom: '4px' }}>{stat.value}</span>
-                <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '700', textTransform: 'uppercase' }}>{stat.label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* 8. Event Performance Details */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-            {/* Event Stats */}
+          {isOrganizer ? (
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '16px', borderBottom: '1.5px solid var(--border-light)', paddingBottom: '8px' }}>Event Performance</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Registrations</span>
-                  <span style={{ fontWeight: '700' }}>{eventsParticipated}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Completions</span>
-                  <span style={{ fontWeight: '700' }}>{eventsCompletedCount}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Shortlists / Review</span>
-                  <span style={{ fontWeight: '700' }}>{detailedEvents.filter(de => de.submission?.status === 'Shortlisted').length || 1}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Wins / Awards</span>
-                  <span style={{ fontWeight: '700', color: '#10B981' }}>{certificates.length || 0}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Portfolio Showcase */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Portfolio Showcase</h3>
-              <button 
-                onClick={() => setIsAddProjectModalOpen(true)}
-                style={{
-                  background: 'var(--primary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '12px 18px',
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  minHeight: '44px'
-                }}
-              >
-                <Plus size={14} /> Add Project
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {projects.map((proj, idx) => (
-                <div 
-                  key={idx}
-                  style={{
-                    background: 'var(--bg-light)',
-                    borderRadius: '14px',
-                    padding: '16px',
-                    border: '1px solid var(--border-light)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <span style={{ 
-                        fontSize: '9px', 
-                        fontWeight: '800', 
-                        background: 'rgba(123, 97, 255, 0.1)', 
-                        color: 'var(--primary)', 
-                        padding: '3px 8px', 
-                        borderRadius: '6px',
-                        textTransform: 'uppercase'
-                      }}>{proj.category}</span>
-                      <h4 style={{ fontSize: '15px', fontWeight: '700', marginTop: '6px', color: 'var(--text-light)', margin: '6px 0 2px 0' }}>{proj.title}</h4>
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      {proj.link && (
-                        <a href={proj.link} target="_blank" rel="noreferrer" style={{ color: 'var(--muted-light)', transition: 'color 0.2s', display: 'flex', alignItems: 'center' }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.color = 'var(--muted-light)'}>
-                          <ExternalLink size={16} />
-                        </a>
-                      )}
-                      <button 
-                        onClick={() => handleDeleteProject(idx)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', padding: 0 }}
-                        title="Delete Project"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <p style={{ fontSize: '13px', color: 'var(--muted-light)', lineHeight: '1.4', margin: 0 }}>{proj.description}</p>
-                  
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                    {proj.tech?.map((tag, tIdx) => (
-                      <span key={tIdx} style={{ fontSize: '10px', background: 'white', color: 'var(--text-light)', border: '1px solid var(--border-light)', padding: '2px 8px', borderRadius: '8px', fontWeight: '600' }}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {projects.length === 0 && (
+              <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', marginBottom: '20px', marginTop: 0 }}>Hosted Events Record</h3>
+              {organizerEvents.length === 0 ? (
                 <div style={{ padding: '36px 24px', textAlign: 'center', background: 'var(--bg-light)', borderRadius: '16px', border: '1px dashed var(--border-light)' }}>
-                  <BookOpen size={32} color="var(--muted-light)" style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                  <p style={{ fontSize: '13px', color: 'var(--muted-light)', margin: 0, fontWeight: '500' }}>No projects in your portfolio yet. Add one to showcase your work!</p>
+                  <Calendar size={32} color="var(--muted-light)" style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                  <p style={{ fontSize: '13px', color: 'var(--muted-light)', margin: 0, fontWeight: '500' }}>No hosted hackathons or events found in your record yet.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {organizerEvents.map((evt, index) => (
+                    <div key={index} style={{ borderBottom: index < organizerEvents.length - 1 ? '1px solid var(--border-light)' : 'none', paddingBottom: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h4 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-light)', margin: 0 }}>{evt.title}</h4>
+                        <span style={{ fontSize: '11px', background: '#ECFDF5', color: '#059669', padding: '3px 8px', borderRadius: '6px', fontWeight: '700' }}>{evt.status || 'Active'}</span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: 'var(--muted-light)', margin: '6px 0 10px 0', lineHeight: '1.4' }}>{evt.description}</p>
+                      <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--muted-light)', fontWeight: '600' }}>
+                        <span>👥 {evt.registeredCount || 0} Registered</span>
+                        <span>📍 {evt.mode}</span>
+                        <span>📅 {new Date(evt.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          </div>
-
-          {/* 3. Certificate Preview */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Certificate Credentials</h3>
-              <button onClick={() => navigate('/certificates')} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>View All</button>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              {certificates.slice(0, 2).map((cert, idx) => (
-                <div 
-                  key={idx}
-                  onClick={() => navigate(`/verify/${cert.certId || cert.id}`)}
-                  style={{
-                    background: 'var(--bg-light)',
-                    border: '1.5px solid #FFD700',
-                    borderRadius: '16px',
+          ) : (
+            <>
+              {/* 1. Academic Journey Summary Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
+                {[
+                  { label: 'Events Joined', value: eventsParticipated, color: '#7B61FF' },
+                  { label: 'Events Finished', value: eventsCompletedCount, color: '#10B981' },
+                  { label: 'Tests Completed', value: assessmentsCompletedCount, color: '#3B82F6' },
+                  { label: 'Workspace Uploads', value: projectsSubmittedCount, color: '#F59E0B' }
+                ].map((stat, idx) => (
+                  <div key={idx} style={{ 
+                    background: 'white', 
+                    border: '1px solid var(--border-light)', 
+                    borderRadius: '16px', 
                     padding: '16px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    position: 'relative'
-                  }}
-                >
-                  <Award size={24} color="#FFD700" style={{ marginBottom: '4px' }} />
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-light)', margin: 0 }}>{cert.eventTitle}</h4>
-                    <span style={{ fontSize: '10px', color: 'var(--muted-light)', fontFamily: 'monospace', marginTop: '2px', display: 'block' }}>{cert.certId}</span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '8px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '10px', color: '#10B981', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <CheckCircle size={10} color="#10B981" /> Verified Status
-                    </span>
-                    <ChevronRight size={14} color="var(--muted-light)" />
-                  </div>
-                </div>
-              ))}
-              
-              {certificates.length === 0 && (
-                <div style={{ gridColumn: 'span 2', padding: '24px', textAlign: 'center', background: 'var(--bg-light)', borderRadius: '16px', border: '1px dashed var(--border-light)' }}>
-                  <Award size={32} color="var(--muted-light)" style={{ margin: '0 auto 8px', opacity: 0.5 }} />
-                  <p style={{ fontSize: '12px', color: 'var(--muted-light)', margin: 0 }}>No verified platform credentials earned yet.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 4. Activity Timeline */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', marginBottom: '20px', marginTop: 0 }}>Activity Timeline</h3>
-            
-            <div style={{ position: 'relative', paddingLeft: '16px' }}>
-              <div style={{ position: 'absolute', top: '4px', bottom: '4px', left: '0', width: '2px', background: 'var(--border-light)' }} />
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* 1. Registration */}
-                {registrations.slice(0, 1).map((reg, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#7B61FF', border: '2px solid white' }} />
-                    <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Event Registration</span>
-                    <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Registered for {reg.title}</h5>
+                    textAlign: 'center',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.01)'
+                  }}>
+                    <span style={{ fontSize: '26px', fontWeight: '800', color: stat.color, display: 'block', marginBottom: '4px' }}>{stat.value}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '700', textTransform: 'uppercase' }}>{stat.label}</span>
                   </div>
                 ))}
-
-                {/* 2. Assessment */}
-                {detailedEvents.filter(de => de.assessment).slice(0, 1).map((de, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#3B82F6', border: '2px solid white' }} />
-                    <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Screening Cleared</span>
-                    <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Completed {de.eventTitle} Coding Assessment</h5>
-                  </div>
-                ))}
-
-                {/* 3. Submissions */}
-                {detailedEvents.filter(de => de.submission).slice(0, 1).map((de, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B', border: '2px solid white' }} />
-                    <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Project Submission</span>
-                    <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Uploaded project repository URL for {de.eventTitle}</h5>
-                  </div>
-                ))}
-
-                {/* 4. Credentials */}
-                {certificates.slice(0, 1).map((cert, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#FFD700', border: '2px solid white' }} />
-                    <span style={{ fontSize: '11px', color: '#D4AF37', fontWeight: '700' }}>Credential Earned</span>
-                    <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Minted official certificate for {cert.eventTitle}</h5>
-                  </div>
-                ))}
-
-                {/* Fallback Timeline Item if no events registered */}
-                {registrations.length === 0 && (
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary)', border: '2px solid white' }} />
-                    <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Account Created</span>
-                    <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Initialized Student Academic Profile</h5>
-                  </div>
-                )}
               </div>
-            </div>
-          </div>
 
+              {/* 8. Event Performance Details */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                {/* Event Stats */}
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '16px', borderBottom: '1.5px solid var(--border-light)', paddingBottom: '8px' }}>Event Performance</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: 'var(--muted-light)' }}>Registrations</span>
+                      <span style={{ fontWeight: '700' }}>{eventsParticipated}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: 'var(--muted-light)' }}>Completions</span>
+                      <span style={{ fontWeight: '700' }}>{eventsCompletedCount}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: 'var(--muted-light)' }}>Shortlists / Review</span>
+                      <span style={{ fontWeight: '700' }}>{detailedEvents.filter(de => de.submission?.status === 'Shortlisted').length || 1}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: 'var(--muted-light)' }}>Wins / Awards</span>
+                      <span style={{ fontWeight: '700', color: '#10B981' }}>{certificates.length || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Portfolio Showcase */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Portfolio Showcase</h3>
+                  <button 
+                    onClick={() => setIsAddProjectModalOpen(true)}
+                    style={{
+                      background: 'var(--primary)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 18px',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      minHeight: '44px'
+                    }}
+                  >
+                    <Plus size={14} /> Add Project
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {projects.map((proj, idx) => (
+                    <div 
+                      key={idx}
+                      style={{
+                        background: 'var(--bg-light)',
+                        borderRadius: '14px',
+                        padding: '16px',
+                        border: '1px solid var(--border-light)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ 
+                            fontSize: '9px', 
+                            fontWeight: '800', 
+                            background: 'rgba(123, 97, 255, 0.1)', 
+                            color: 'var(--primary)', 
+                            padding: '3px 8px', 
+                            borderRadius: '6px',
+                            textTransform: 'uppercase'
+                          }}>{proj.category}</span>
+                          <h4 style={{ fontSize: '15px', fontWeight: '700', marginTop: '6px', color: 'var(--text-light)', margin: '6px 0 2px 0' }}>{proj.title}</h4>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                          {proj.link && (
+                            <a href={proj.link} target="_blank" rel="noreferrer" style={{ color: 'var(--muted-light)', transition: 'color 0.2s', display: 'flex', alignItems: 'center' }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.color = 'var(--muted-light)'}>
+                              <ExternalLink size={16} />
+                            </a>
+                          )}
+                          <button 
+                            onClick={() => handleDeleteProject(idx)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', padding: 0 }}
+                            title="Delete Project"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <p style={{ fontSize: '13px', color: 'var(--muted-light)', lineHeight: '1.4', margin: 0 }}>{proj.description}</p>
+                      
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                        {proj.tech?.map((tag, tIdx) => (
+                          <span key={tIdx} style={{ fontSize: '10px', background: 'white', color: 'var(--text-light)', border: '1px solid var(--border-light)', padding: '2px 8px', borderRadius: '8px', fontWeight: '600' }}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {projects.length === 0 && (
+                    <div style={{ padding: '36px 24px', textAlign: 'center', background: 'var(--bg-light)', borderRadius: '16px', border: '1px dashed var(--border-light)' }}>
+                      <BookOpen size={32} color="var(--muted-light)" style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                      <p style={{ fontSize: '13px', color: 'var(--muted-light)', margin: 0, fontWeight: '500' }}>No projects in your portfolio yet. Add one to showcase your work!</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Certificate Preview */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Certificate Credentials</h3>
+                  <button onClick={() => navigate('/certificates')} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>View All</button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  {certificates.slice(0, 2).map((cert, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => navigate(`/verify/${cert.certId || cert.id}`)}
+                      style={{
+                        background: 'var(--bg-light)',
+                        border: '1.5px solid #FFD700',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        position: 'relative'
+                      }}
+                    >
+                      <Award size={24} color="#FFD700" style={{ marginBottom: '4px' }} />
+                      <div>
+                        <h4 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-light)', margin: 0 }}>{cert.eventTitle}</h4>
+                        <span style={{ fontSize: '10px', color: 'var(--muted-light)', fontFamily: 'monospace', marginTop: '2px', display: 'block' }}>{cert.certId}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '8px', marginTop: '4px' }}>
+                        <span style={{ fontSize: '10px', color: '#10B981', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle size={10} color="#10B981" /> Verified Status
+                        </span>
+                        <ChevronRight size={14} color="var(--muted-light)" />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {certificates.length === 0 && (
+                    <div style={{ gridColumn: 'span 2', padding: '24px', textAlign: 'center', background: 'var(--bg-light)', borderRadius: '16px', border: '1px dashed var(--border-light)' }}>
+                      <Award size={32} color="var(--muted-light)" style={{ margin: '0 auto 8px', opacity: 0.5 }} />
+                      <p style={{ fontSize: '12px', color: 'var(--muted-light)', margin: 0 }}>No verified platform credentials earned yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 4. Activity Timeline */}
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', marginBottom: '20px', marginTop: 0 }}>Activity Timeline</h3>
+                
+                <div style={{ position: 'relative', paddingLeft: '16px' }}>
+                  <div style={{ position: 'absolute', top: '4px', bottom: '4px', left: '0', width: '2px', background: 'var(--border-light)' }} />
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {/* 1. Registration */}
+                    {registrations.slice(0, 1).map((reg, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#7B61FF', border: '2px solid white' }} />
+                        <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Event Registration</span>
+                        <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Registered for {reg.title}</h5>
+                      </div>
+                    ))}
+
+                    {/* 2. Assessment */}
+                    {detailedEvents.filter(de => de.assessment).slice(0, 1).map((de, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#3B82F6', border: '2px solid white' }} />
+                        <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Screening Cleared</span>
+                        <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Completed {de.eventTitle} Coding Assessment</h5>
+                      </div>
+                    ))}
+
+                    {/* 3. Submissions */}
+                    {detailedEvents.filter(de => de.submission).slice(0, 1).map((de, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B', border: '2px solid white' }} />
+                        <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Project Submission</span>
+                        <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Uploaded project repository URL for {de.eventTitle}</h5>
+                      </div>
+                    ))}
+
+                    {/* 4. Credentials */}
+                    {certificates.slice(0, 1).map((cert, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: '#FFD700', border: '2px solid white' }} />
+                        <span style={{ fontSize: '11px', color: '#D4AF37', fontWeight: '700' }}>Credential Earned</span>
+                        <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Minted official certificate for {cert.eventTitle}</h5>
+                      </div>
+                    ))}
+
+                    {/* Fallback Timeline Item if no events registered */}
+                    {registrations.length === 0 && (
+                      <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: '-21px', top: '3px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary)', border: '2px solid white' }} />
+                        <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Account Created</span>
+                        <h5 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)', margin: '2px 0 0 0' }}>Initialized Student Academic Profile</h5>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
       </div>
