@@ -1,17 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #0D9488;
-  --primary-light: #E6F4F1;
-  --bg-light: #F1F5F9;
-  --background: #F1F5F9;
+  --primary: #6D28D9;
+  --primary-light: #EDE9FE;
+  --secondary: #4338CA;
+  --bg-light: #F8FAFC;
+  --background: #F8FAFC;
   --surface: #FFFFFF;
-  --text-light: #1D2939;
-  --muted-light: #667085;
+  --text-light: #111827;
+  --muted-light: #6B7280;
+  --meta-light: #9CA3AF;
   --border-light: #E2E8F0;
 }
 
-/* removed dark mode variables */
+.dark {
+  --primary: #8B5CF6;
+  --primary-light: rgba(109, 40, 217, 0.15);
+  --secondary: #6366F1;
+  --bg-light: #000000;
+  --background: #000000;
+  --surface: #0A0A0A;
+  --text-light: #F9FAFB;
+  --muted-light: #9CA3AF;
+  --meta-light: #6B7280;
+  --border-light: #1F2937;
+}
 
 * {
   box-sizing: border-box;
@@ -48,15 +61,16 @@ body {
 .event-card {
   background: var(--surface);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
 .event-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
 }
 
 .event-card-img {
@@ -95,7 +109,7 @@ body {
 
 /* Profile Layout */
 .profile-header {
-  background: linear-gradient(135deg, var(--primary), #2DD4BF);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   border-radius: 24px;
   padding: 40px;
   color: white;
@@ -184,13 +198,13 @@ body {
   min-height: 580px;
   background: white;
   border-radius: 24px;
-  box-shadow: 0 24px 80px rgba(13, 148, 136, 0.12);
+  box-shadow: 0 24px 80px rgba(109, 40, 217, 0.12);
   overflow: hidden;
 }
 
 .auth-left {
   flex: 1;
-  background: linear-gradient(135deg, var(--primary) 0%, #14B8A6 60%, #2DD4BF 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   padding: 48px 40px;
   display: flex;
   flex-direction: column;
@@ -294,7 +308,7 @@ body {
 .glass-panel {
   background: var(--surface);
   border: 1px solid var(--border-light);
-  box-shadow: 0 8px 32px 0 rgba(13, 148, 136, 0.04);
+  box-shadow: 0 8px 32px 0 rgba(109, 40, 217, 0.04);
   border-radius: 24px;
 }
 
@@ -309,8 +323,8 @@ body {
 .glass-card:hover {
   transform: translateY(-4px) scale(1.01);
   background: var(--surface);
-  border-color: rgba(13, 148, 136, 0.3);
-  box-shadow: 0 12px 28px rgba(13, 148, 136, 0.08);
+  border-color: rgba(109, 40, 217, 0.3);
+  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.08);
 }
 
 /* Background Blur Blobs */
@@ -318,7 +332,7 @@ body {
   position: absolute;
   width: 350px;
   height: 350px;
-  background: radial-gradient(circle, rgba(13, 148, 136, 0.12) 0%, rgba(13, 148, 136, 0) 70%);
+  background: radial-gradient(circle, rgba(109, 40, 217, 0.12) 0%, rgba(109, 40, 217, 0) 70%);
   border-radius: 50%;
   filter: blur(60px);
   pointer-events: none;
@@ -330,7 +344,7 @@ body {
   position: absolute;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, rgba(14, 165, 233, 0) 70%);
+  background: radial-gradient(circle, rgba(67, 56, 202, 0.08) 0%, rgba(67, 56, 202, 0) 70%);
   border-radius: 50%;
   filter: blur(50px);
   pointer-events: none;
@@ -342,7 +356,7 @@ body {
   position: absolute;
   width: 280px;
   height: 280px;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, rgba(236, 72, 153, 0) 70%);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0) 70%);
   border-radius: 50%;
   filter: blur(55px);
   pointer-events: none;
@@ -370,11 +384,11 @@ body {
   background: transparent;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: rgba(13, 148, 136, 0.15);
+  background: rgba(109, 40, 217, 0.15);
   border-radius: 10px;
 }
 .custom-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(13, 148, 136, 0.3);
+  background: rgba(109, 40, 217, 0.3);
 }
 
 /* On-load Fade In Up animation */
@@ -493,7 +507,7 @@ body {
 
 .bottom-nav-link.active {
   color: var(--primary);
-  background: rgba(13, 148, 136, 0.08);
+  background: rgba(109, 40, 217, 0.08);
 }
 
 /* Media Queries for Small Mobile Devices */

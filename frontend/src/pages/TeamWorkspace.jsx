@@ -360,10 +360,10 @@ export default function TeamWorkspace() {
             <input 
               placeholder="Enter 6-digit Invite Code" 
               className="form-input" 
-              style={{ flex: 1, background: 'var(--bg-light)', color: 'var(--text-light)' }} 
+              style={{ flex: 1, background: 'var(--bg-light)', color: 'var(--text-light)', textTransform: 'uppercase' }} 
               value={inviteCodeInput} 
-              onChange={e => setInviteCodeInput(e.target.value.toUpperCase())} 
-              maxLength={6}
+              onChange={e => setInviteCodeInput(e.target.value)} 
+              maxLength={20}
             />
             <button type="submit" disabled={isSubmitting} className="btn-primary">Join Team</button>
           </form>

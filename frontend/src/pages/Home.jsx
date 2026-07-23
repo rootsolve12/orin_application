@@ -1,67 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Sparkles, Calendar, Award, Users, TrendingUp, ChevronRight, 
-  Zap, Clock, Target, MessageSquare, 
-  GraduationCap, Flame, Compass, Users2, ArrowRight, Plus, QrCode, AlertCircle, FileText
+  ChevronRight, ArrowRight, Eye, Bookmark, Target, Award
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getAllEvents, getUserRegistrations, getOrganizerEvents } from '../firebase/firestore';
+import { getAllEvents, getUserRegistrations } from '../firebase/firestore';
 import EventCard from '../components/EventCard';
-
-const MOCK_FALLBACK_EVENTS = [
-  { id: 'e1', title: 'Global Hack 2026', category: 'Hackathons', date: '2026-08-15T10:00:00Z', location: 'SRM University', mode: 'Offline', registeredCount: 450, maxCapacity: 500, description: '48-hour national hackathon with tracks in AI, FinTech, and Web3. Build next-gen student solutions.', image: 'https://via.placeholder.com/600x300/7B61FF/FFFFFF?text=Global+Hack+2026' },
-  { id: 'e2', title: 'Intro to Quantum Computing', category: 'Webinars', date: '2026-09-01T14:00:00Z', location: 'Virtual', mode: 'Online', registeredCount: 120, maxCapacity: 5000, description: 'Master quantum algorithms, qubits, and IBM Qiskit from scratch with industry leaders.', image: 'https://via.placeholder.com/600x300/FF6B6B/FFFFFF?text=Quantum+Computing' },
-  { id: 'e3', title: 'AI Innovation Challenge', category: 'Innovation Challenges', date: '2026-10-10T09:00:00Z', location: 'Bangalore Tech Park', mode: 'Offline', registeredCount: 89, maxCapacity: 100, description: 'Design and pitch AI agentic workflows solving local sustainability issues. Seed funding available.', image: 'https://via.placeholder.com/600x300/20C997/FFFFFF?text=AI+Innovation' },
-  { id: 'e4', title: 'AlgoRhythm Coding Comp', category: 'Coding', date: '2026-07-20T18:00:00Z', location: 'Virtual', mode: 'Online', registeredCount: 300, maxCapacity: 300, description: 'Speed programming contest on DSA. Solve 6 algorithmic problems in 3 hours.', image: 'https://via.placeholder.com/600x300/FD7E14/FFFFFF?text=AlgoRhythm' },
-  { id: 'e5', title: 'Advanced React Architecture', category: 'Workshops', date: '2026-06-28T09:00:00Z', location: 'Virtual', mode: 'Online', registeredCount: 250, maxCapacity: 300, description: 'Master Server Components, concurrent rendering, and advanced performance optimizations.', image: 'https://via.placeholder.com/600x300/61DAFB/000000?text=React+Architecture' },
-  { id: 'e6', title: 'Rust Systems Programming', category: 'Workshops', date: '2026-06-25T13:00:00Z', location: 'Virtual', mode: 'Online', registeredCount: 180, maxCapacity: 200, description: 'Learn memory safety, lifetimes, and concurrent programming in systems-level development.', image: 'https://via.placeholder.com/600x300/000000/FFFFFF?text=Rust+Programming' }
-];
 
 export default function Home() {
   const { currentUser, userProfile } = useAuth();
   const navigate = useNavigate();
 
-  const mapRoundToStage = (roundName) => {
-    if (!roundName) return 'Registration';
-    const r = roundName.toLowerCase();
-    if (r.includes('register') || r.includes('screen')) return 'Registration';
-    if (r.includes('assess')) return 'Assessment';
-    if (r.includes('submit') || r.includes('project')) return 'Submission';
-    if (r.includes('review') || r.includes('shortlist') || r.includes('judge')) return 'Review';
-    if (r.includes('final') || r.includes('result') || r.includes('winner')) return 'Results';
-    if (r.includes('certif')) return 'Certification';
-    return 'Registration';
-  };
-
   const [dbEvents, setDbEvents] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
-
-
-
-  // Tabs for structured clean discovery feeds
-  const [opportunityTab, setOpportunityTab] = useState('recommended');
-  
-  // Bottom Discovery Feed Category & Search
-  const [discoveryFilter, setDiscoveryFilter] = useState('All');
-  const [visibleCount, setVisibleCount] = useState(3);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const firstName = userProfile?.displayName?.split(' ')[0] 
-    || currentUser?.displayName?.split(' ')[0] 
-    || 'Developer';
-
-  const isOrganizer = userProfile?.role === 'organizer';
-  const [organizerEvents, setOrganizerEvents] = useState([]);
-  const [organizerLoading, setOrganizerLoading] = useState(false);
+  const [activityTab, setActivityTab] = useState('Registrations');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,719 +25,127 @@ export default function Home() {
         ]);
         setDbEvents(data);
         setRegistrations(regs);
-
-        if (currentUser && userProfile?.role === 'organizer') {
-          setOrganizerLoading(true);
-          const orgData = await getOrganizerEvents(currentUser.uid);
-          setOrganizerEvents(orgData);
-        }
       } catch (err) {
         console.error('Firebase Error:', err);
       } finally {
         setLoading(false);
-        setOrganizerLoading(false);
       }
     };
     fetchData();
-  }, [currentUser, userProfile]);
+  }, [currentUser]);
 
-  // --- Memoized Dynamic Feed Categorization Arrays ---
-  const userSkills = userProfile?.skills || ['React', 'JavaScript', 'Python'];
+  const activityTabs = ['Registrations', 'Watchlist', 'Recently Viewed', 'My Rounds'];
 
-  const {
-    recommendedEvents,
-    trendingEvents,
-    newEvents,
-    closingSoonEvents,
-    skillGrowthEvents,
-    discoveryEvents
-  } = useMemo(() => {
-    const sourceEvents = dbEvents.length > 0 ? dbEvents : MOCK_FALLBACK_EVENTS;
-    const registeredIds = new Set(registrations.map(r => r.id || r.eventId));
-    const unregistered = sourceEvents.filter(e => !registeredIds.has(e.id));
-
-    const recommended = unregistered.filter(event => {
-      const textToMatch = `${event.title} ${event.description} ${event.category}`.toLowerCase();
-      return userSkills.some(skill => textToMatch.includes(skill.toLowerCase()));
-    }).slice(0, 4);
-
-    const trending = [...unregistered]
-      .sort((a, b) => (b.registeredCount || 0) - (a.registeredCount || 0))
-      .slice(0, 4);
-
-    const newEvts = [...unregistered]
-      .sort((a, b) => new Date(b.date || Date.now()) - new Date(a.date || Date.now()))
-      .slice(0, 4);
-
-    const closing = [...unregistered]
-      .filter(event => new Date(event.date || Date.now()) > new Date())
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(0, 4);
-
-    const growth = unregistered.filter(event => {
-      const textToMatch = `${event.title} ${event.description}`.toLowerCase();
-      return textToMatch.includes('react') || textToMatch.includes('rust') || textToMatch.includes('systems');
-    }).slice(0, 4);
-
-    const parsedSearchQuery = searchQuery.toLowerCase();
-    const discovery = unregistered.filter(event => {
-      const matchesFilter = discoveryFilter === 'All' 
-        || event.category?.toLowerCase().startsWith(discoveryFilter.toLowerCase().slice(0, 5));
-      const matchesSearch = searchQuery === ''
-        || event.title?.toLowerCase().includes(parsedSearchQuery)
-        || event.description?.toLowerCase().includes(parsedSearchQuery);
-      return matchesFilter && matchesSearch;
-    });
-
-    return {
-      recommendedEvents: recommended,
-      trendingEvents: trending,
-      newEvents: newEvts,
-      closingSoonEvents: closing,
-      skillGrowthEvents: growth,
-      discoveryEvents: discovery
-    };
-  }, [dbEvents, registrations, userSkills, discoveryFilter, searchQuery]);
-
-  // --- Dynamic Tab Selector Configuration ---
-  const tabConfigs = useMemo(() => [
-    { key: 'recommended', label: '🎯 For You', data: recommendedEvents },
-    { key: 'trending', label: '🔥 Trending', data: trendingEvents },
-    { key: 'closing', label: '⏳ Closing Soon', data: closingSoonEvents },
-    { key: 'new', label: '🆕 New Opportunities', data: newEvents },
-    { key: 'growth', label: '⚡ Skill Growth', data: skillGrowthEvents }
-  ], [recommendedEvents, trendingEvents, closingSoonEvents, newEvents, skillGrowthEvents]);
-
-  const getRecommendationReason = (event, tabKey) => {
-    switch (tabKey) {
-      case 'recommended':
-        return `Matches skill: ${userSkills.find(s => `${event.title} ${event.description}`.toLowerCase().includes(s.toLowerCase())) || 'Tech'}`;
-      case 'trending':
-        return `🔥 Popular - ${(event.registeredCount || 0) + 120} views today`;
-      case 'new':
-        return `🆕 Published recently`;
-      case 'closing':
-        return `⏳ Registration closes soon`;
-      case 'growth':
-        return `⚡ Perfect for skill expansion`;
-      default:
-        return 'Fits your profile';
-    }
-  };
-
-  const getMatchPercentage = (event) => {
-    const idSum = event.id ? event.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) : 100;
-    return 85 + (idSum % 15);
-  };
-
-  const activeTabData = tabConfigs.find(t => t.key === opportunityTab)?.data || recommendedEvents;
-
-  // --- Lightweight Styled Component Blocks ---
-
-  const continueJourneyWidget = (
-    <div className="glass-card" style={{ overflow: 'hidden' }}>
-      <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(90deg, rgba(127, 86, 217, 0.04) 0%, rgba(255, 255, 255, 0) 100%)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Flame size={18} color="var(--primary)" />
-          <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-light)', margin: 0 }}>Continue Your Journey</h3>
+  // Clean dashboard styling components
+  const SectionHeader = ({ title, subtitle, onViewAll }) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', marginTop: '32px' }}>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '4px', height: '24px', background: 'var(--primary)', borderRadius: '4px' }} />
+          <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-light)', margin: 0, letterSpacing: '-0.5px' }}>{title}</h2>
         </div>
+        {subtitle && <p style={{ fontSize: '14px', color: 'var(--muted-light)', marginTop: '4px', marginLeft: '12px' }}>{subtitle}</p>}
       </div>
-      
-      {registrations.length > 0 ? (
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {registrations.slice(0, 2).map(reg => (
-            <div key={reg.id || reg.eventId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.5)', padding: '14px 16px', borderRadius: '16px', border: '1px solid var(--border-light)', gap: '12px' }}>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-light)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reg.title}</h4>
-                <p style={{ fontSize: '12px', color: 'var(--muted-light)', margin: '4px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Stage: {reg.rounds?.[reg.currentRoundIndex || 0] ? `${mapRoundToStage(reg.rounds[reg.currentRoundIndex])} (${reg.rounds[reg.currentRoundIndex]})` : 'Registration'}
-                </p>
-              </div>
-              <button onClick={() => navigate(`/event/${reg.id || reg.eventId}`)} className="btn-primary" style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '10px', flexShrink: 0 }}>Resume</button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-          <Target size={40} color="var(--muted-light)" style={{ marginBottom: '12px', opacity: 0.5 }} />
-          <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-light)', marginBottom: '6px' }}>Your agenda is open</h4>
-          <p style={{ fontSize: '13px', color: 'var(--muted-light)', marginBottom: '20px', maxWidth: '340px', margin: '0 auto 20px', lineHeight: '1.4' }}>
-            Unlock verified merit credentials and badges by entering open hackathons or workshops.
-          </p>
-          <button onClick={() => navigate('/explore')} className="btn-primary" style={{ padding: '10px 20px', fontSize: '13px', borderRadius: '10px' }}>Explore Upcoming Events</button>
-        </div>
+      {onViewAll && (
+        <button onClick={onViewAll} className="touch-target" style={{ 
+          background: 'var(--surface)', border: '1px solid var(--border-light)', 
+          padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '700', 
+          color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' 
+        }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-light)'} onMouseOut={e => e.currentTarget.style.background = 'var(--surface)'}>
+          View All <ArrowRight size={14} />
+        </button>
       )}
     </div>
   );
 
-  const activeDeadlines = useMemo(() => {
-    return registrations
-      .filter(r => new Date(r.date || Date.now()) > new Date())
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(0, 3)
-      .map(r => {
-        const timeDiff = new Date(r.date) - new Date();
-        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((timeDiff / (1000 * 60 * 60)) % 24);
-        return { type: 'Upcoming', event: r.title, timeLeft: `${days}d ${hours}h`, color: '#F59E0B', bg: '#FFFBEB' };
-      });
-  }, [registrations]);
-
-  const deadlineCenterWidget = (
-    <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFC' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-          <Clock size={16} color="var(--primary)" /> Deadline Tracker
-        </h3>
-      </div>
-      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {activeDeadlines.length > 0 ? activeDeadlines.map((dl, idx) => (
-          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: idx < activeDeadlines.length - 1 ? '1px solid #F1F5F9' : 'none', paddingBottom: idx < activeDeadlines.length - 1 ? '10px' : '0', gap: '8px' }}>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <span style={{ fontSize: '10px', color: dl.color, fontWeight: '700', textTransform: 'uppercase', background: dl.bg, padding: '2px 6px', borderRadius: '6px' }}>{dl.type}</span>
-              <p style={{ fontSize: '13px', fontWeight: '700', color: '#334155', margin: '6px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dl.event}</p>
-            </div>
-            <span style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', color: '#475569', flexShrink: 0 }}>{dl.timeLeft}</span>
-          </div>
-        )) : (
-          <div style={{ textAlign: 'center', color: '#64748B', fontSize: '13px', padding: '10px 0' }}>No upcoming deadlines.</div>
-        )}
-      </div>
+  const HorizontalScroll = ({ children }) => (
+    <div style={{ 
+      display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px', 
+      scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' 
+    }}>
+      {children}
     </div>
   );
-
-  const myTeamsWidget = (
-    <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-          <Users size={16} color="var(--primary)" /> My Teams
-        </h3>
-      </div>
-      
-      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {userProfile?.teamId ? (
-          <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: '#334155' }}>💻 Your Workspace Team</span>
-              <span style={{ fontSize: '11px', color: '#10B981', fontWeight: '600' }}>Active</span>
-            </div>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', color: '#64748B', fontSize: '13px', padding: '10px 0' }}>You are not in any teams.</div>
-        )}
-        <button onClick={() => navigate('/team')} style={{ width: '100%', padding: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', color: 'var(--primary)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-          Go to Teams Workspace <ChevronRight size={14} />
-        </button>
-      </div>
-    </div>
-  );
-
-  const quickActionsWidget = (
-    <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid #F1F5F9', background: '#F8FAFC' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-          <Zap size={16} color="var(--primary)" /> Workspace Actions
-        </h3>
-      </div>
-      <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-        {[
-          { label: 'Explore Events', path: '/explore', icon: <Compass size={14} />, bg: '#EEF2FF', color: '#4F46E5' },
-          { label: 'Create Team', path: '/team', icon: <Users2 size={14} />, bg: '#ECFDF5', color: '#059669' },
-          { label: 'Certifications', path: '/certificates', icon: <Award size={14} />, bg: '#FFF7ED', color: '#D97706' },
-          { label: 'Registrations', path: '/my-events', icon: <Calendar size={14} />, bg: '#FDF2F8', color: '#DB2777' }
-        ].map((action, idx) => (
-          <button
-            key={idx}
-            onClick={() => navigate(action.path)}
-            className="touch-target glass-card"
-            style={{
-              background: 'white',
-              border: '1px solid #E2E8F0',
-              borderRadius: '12px',
-              padding: '12px 8px',
-              fontSize: '12px',
-              fontWeight: '700',
-              color: '#334155',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%',
-              minHeight: '80px',
-              justifyContent: 'center'
-            }}
-          >
-            <span style={{ display: 'flex', padding: '8px', borderRadius: '50%', background: action.bg, color: action.color }}>
-              {action.icon}
-            </span>
-            {action.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-
-
-  if (isOrganizer) {
-    const totalRegistrations = organizerEvents.reduce((acc, curr) => acc + (curr.registeredCount || 0), 0);
-    const completedEvents = organizerEvents.filter(e => e.status === 'Completed').length;
-    const activeEvents = organizerEvents.filter(e => e.status !== 'Completed').length;
-
-    return (
-      <div className="custom-scroll" style={{ padding: isMobile ? '16px 12px' : '32px 24px', maxWidth: '1200px', margin: '0 auto', background: 'transparent', minHeight: '100vh', color: '#1D2939', position: 'relative' }}>
-        {/* Decorative Pastel Background Blobs */}
-        <div className="bg-blob-purple" style={{ top: '5%', left: '-5%' }} />
-        <div className="bg-blob-blue" style={{ top: '35%', right: '-5%' }} />
-        <div className="bg-blob-pink" style={{ bottom: '15%', left: '25%' }} />
-        
-        {/* Welcome Header */}
-        <div className="glass-panel animate-fade-in-up" style={{
-          background: 'linear-gradient(135deg, rgba(245, 243, 255, 0.8) 0%, rgba(240, 249, 255, 0.8) 50%, rgba(255, 241, 242, 0.7) 100%)',
-          padding: isMobile ? '24px 20px' : '36px 44px',
-          marginBottom: '32px', position: 'relative', overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.5)',
-          boxShadow: '0 10px 40px rgba(127, 86, 217, 0.05)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: '800', fontSize: '13px', letterSpacing: '-0.1px', marginBottom: '16px' }}>
-            <Sparkles size={16} color="var(--primary)" fill="var(--primary)" />
-            Organizer Workspace Verified
-          </div>
-          <h1 style={{ fontSize: isMobile ? '22px' : '32px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-light)', letterSpacing: '-0.8px' }}>
-            Welcome back, {firstName}! 👑
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--muted-light)', maxWidth: '640px', lineHeight: '1.5', fontWeight: '500' }}>
-            Manage registrations, evaluate submissions, publish hackathons, and coordinate participant updates for your developer communities.
-          </p>
-        </div>
-
-        {/* Dashboard Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-          {[
-            { label: 'Total Events Hosted', value: organizerEvents.length, icon: <Calendar size={24} color="#7B61FF" />, bg: '#F3E8FF' },
-            { label: 'Active Hackathons', value: activeEvents, icon: <TrendingUp size={24} color="#10B981" />, bg: '#ECFDF5' },
-            { label: 'Completed Challenges', value: completedEvents, icon: <Award size={24} color="#F59E0B" />, bg: '#FEF3C7' },
-            { label: 'Registered Attendees', value: totalRegistrations, icon: <Users size={24} color="#EF4444" />, bg: '#FEE2E2' }
-          ].map((stat, idx) => (
-            <div key={idx} className="glass-panel" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', background: 'white' }}>
-              <div style={{ padding: '16px', borderRadius: '16px', background: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {stat.icon}
-              </div>
-              <div>
-                <div style={{ fontSize: '28px', fontWeight: '800', color: '#1E293B', letterSpacing: '-1px' }}>{stat.value}</div>
-                <div style={{ fontSize: '12px', color: 'var(--muted-light)', fontWeight: '600', marginTop: '2px' }}>{stat.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Organizer Quick Actions & Events List */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '24px', alignItems: 'flex-start' }}>
-          
-          {/* Main List: Hosted Events */}
-          <div className="glass-panel" style={{ padding: '24px', background: 'white' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={20} color="var(--primary)" /> Your Hosted Events
-            </h2>
-            
-            {organizerLoading ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#64748B' }}>Loading events...</div>
-            ) : organizerEvents.length === 0 ? (
-              <div style={{ padding: '40px', textAlign: 'center', color: '#64748B', border: '2px dashed #E2E8F0', borderRadius: '16px' }}>
-                <Calendar size={36} color="#94A3B8" style={{ marginBottom: '12px' }} />
-                <div style={{ fontWeight: '700', color: '#334155', marginBottom: '4px' }}>No events hosted yet</div>
-                <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px' }}>Get started by creating your first challenge or hackathon!</p>
-                <button onClick={() => navigate('/organizer')} style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
-                  Create Event
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {organizerEvents.map(event => {
-                  const capacityPercent = Math.min(Math.round(((event.registeredCount || 0) / (event.maxCapacity || 100)) * 100), 100);
-                  return (
-                    <div 
-                      key={event.id}
-                      onClick={() => navigate('/organizer')}
-                      style={{ 
-                        border: '1px solid #E2E8F0', borderRadius: '16px', padding: '16px', cursor: 'pointer',
-                        transition: 'all 0.2s', background: 'white'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = '#7B61FF'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = '#E2E8F0'}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                        <div>
-                          <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', margin: 0 }}>{event.title}</h3>
-                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>{event.category} &bull; {event.mode}</span>
-                        </div>
-                        <span style={{ 
-                          fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px',
-                          background: event.status === 'Completed' ? '#F1F5F9' : '#ECFDF5',
-                          color: event.status === 'Completed' ? '#64748B' : '#059669'
-                        }}>
-                          {event.status || 'Active'}
-                        </span>
-                      </div>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#64748B', marginTop: '12px', marginBottom: '4px', fontWeight: '600' }}>
-                        <span>Capacity Filled</span>
-                        <span>{event.registeredCount || 0} / {event.maxCapacity || 100} ({capacityPercent}%)</span>
-                      </div>
-                      <div style={{ width: '100%', height: '6px', background: '#F1F5F9', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${capacityPercent}%`, height: '100%', background: 'linear-gradient(90deg, #7B61FF, #A78BFA)', borderRadius: '3px' }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar: Quick Organizer Tools */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            <div className="glass-panel" style={{ padding: '24px', background: 'white' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 16px' }}>
-                <Zap size={16} color="var(--primary)" strokeWidth={2.5} /> Organizer Actions
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <button
-                  onClick={() => navigate('/organizer')}
-                  style={{
-                    width: '100%', padding: '14px', background: 'linear-gradient(135deg, #7B61FF, #9D88FF)',
-                    color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '14px',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    boxShadow: '0 4px 12px rgba(123, 97, 255, 0.2)', minHeight: '44px'
-                  }}
-                >
-                  <Plus size={16} /> Create New Event
-                </button>
-                <button
-                  onClick={() => navigate('/organizer')}
-                  style={{
-                    width: '100%', padding: '14px', background: '#F8FAFC',
-                    color: '#334155', border: '1px solid #E2E8F0', borderRadius: '12px', fontWeight: '700', fontSize: '14px',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '44px'
-                  }}
-                >
-                  <QrCode size={16} /> Scan QR Attendance
-                </button>
-                <button
-                  onClick={() => navigate('/organizer')}
-                  style={{
-                    width: '100%', padding: '14px', background: '#FFF5F5',
-                    color: '#E53E3E', border: '1px solid #FED7D7', borderRadius: '12px', fontWeight: '700', fontSize: '14px',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '44px'
-                  }}
-                >
-                  <AlertCircle size={16} /> Broadcast Emergency Alert
-                </button>
-              </div>
-            </div>
-
-            <div className="glass-panel" style={{ padding: '20px 24px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-              <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>Verified Organizer Info</h4>
-              <p style={{ fontSize: '12px', color: '#64748B', lineHeight: '1.6', margin: 0, fontWeight: '500' }}>
-                As a verified Orin organizer, you have permission to launch hackathons, issue blockchain credentials, track attendance codes, and query submissions. Contact help desk to configure advanced rubrics.
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    );
-  }
 
   return (
-    <div className="custom-scroll" style={{ padding: isMobile ? '16px 12px' : '32px 24px', maxWidth: '1200px', margin: '0 auto', background: 'transparent', minHeight: '100vh', color: '#1D2939', position: 'relative' }}>
+    <div style={{ padding: '0 24px 80px', maxWidth: '1200px', margin: '0 auto' }}>
       
-      {/* Decorative Pastel Background Blobs */}
-      <div className="bg-blob-purple" style={{ top: '5%', left: '-5%' }} />
-      <div className="bg-blob-blue" style={{ top: '35%', right: '-5%' }} />
-      <div className="bg-blob-pink" style={{ bottom: '15%', left: '25%' }} />
-
-
-      {/* Dynamic Welcome Banner (Lightweight & Soft Pastel Design) */}
-      <div className="glass-panel animate-fade-in-up" style={{
-        background: 'linear-gradient(135deg, rgba(245, 243, 255, 0.8) 0%, rgba(240, 249, 255, 0.8) 50%, rgba(255, 241, 242, 0.7) 100%)',
-        padding: isMobile ? '24px 20px' : '36px 44px',
-        marginBottom: '32px', position: 'relative', overflow: 'hidden',
-        border: '1px solid rgba(255, 255, 255, 0.5)',
-        boxShadow: '0 10px 40px rgba(127, 86, 217, 0.05)'
-      }}>
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'rgba(127, 86, 217, 0.05)', filter: 'blur(30px)' }} />
-        <div style={{ position: 'absolute', bottom: -60, right: 80, width: 160, height: 160, borderRadius: '50%', background: 'rgba(14, 165, 233, 0.04)', filter: 'blur(25px)' }} />
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontWeight: '800', fontSize: '13px', letterSpacing: '-0.1px' }}>
-            <Sparkles size={16} color="var(--primary)" fill="var(--primary)" />
-            Welcome back, {firstName}!
-          </div>
-          <div style={{ background: '#FFF3E0', border: '1px solid #FFE0B2', padding: '4px 12px', borderRadius: '16px', fontSize: '11px', fontWeight: '800', color: '#E65100', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Zap size={13} color="#E65100" fill="#E65100" />
-            Login Streak: {userProfile?.loginStreak || 3} Days
-          </div>
-        </div>
+      {/* Mobile-only header compensation if needed, handled by AppLayout */}
+      
+      {/* MY ACTIVITY SECTION */}
+      <div style={{ background: 'var(--surface)', borderRadius: '24px', padding: '24px', marginTop: '24px', border: '1px solid var(--border-light)' }}>
+        <SectionHeader title="My Activity" />
         
-        <h1 style={{ fontSize: isMobile ? '22px' : '32px', fontWeight: '800', marginBottom: '8px', color: 'var(--text-light)', letterSpacing: '-0.8px', position: 'relative', zIndex: 1 }}>
-          Your Opportunity Workspace 🚀
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--muted-light)', maxWidth: '640px', marginBottom: '24px', lineHeight: '1.5', fontWeight: '500', position: 'relative', zIndex: 1 }}>
-          Discover certified hackathons, coding assessments, and technical challenges tailored for your growth pathway.
-        </p>
-
-        {/* Global user profile stats container */}
-        <div className="swipe-container" style={{ marginBottom: '24px', display: 'flex', gap: '14px', flexWrap: isMobile ? 'nowrap' : 'wrap', position: 'relative', zIndex: 1 }}>
-          {[
-            { label: 'Registered Events', value: registrations.length },
-            { label: 'Opportunity Matches', value: recommendedEvents.length || dbEvents.length },
-            { label: 'Upcoming Deadlines', value: closingSoonEvents.length },
-            { label: 'Ongoing Evaluation', value: 1 },
-            { label: 'Earned Badges', value: 0 }
-          ].map((stat, idx) => (
-            <div key={idx} className="glass-card" style={{ flex: isMobile ? '0 0 135px' : '1', minWidth: '120px', padding: '12px 14px', display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '24px', fontWeight: '800', color: 'var(--primary)', letterSpacing: '-0.5px' }}>{stat.value}</span>
-              <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600', marginTop: '4px' }}>{stat.label}</span>
-            </div>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {activityTabs.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActivityTab(tab)}
+              style={{
+                padding: '8px 20px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap',
+                background: activityTab === tab ? 'var(--surface)' : 'transparent',
+                border: activityTab === tab ? '1px solid var(--primary)' : '1px solid var(--border-light)',
+                color: activityTab === tab ? 'var(--primary)' : 'var(--muted-light)',
+                boxShadow: activityTab === tab ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab}
+            </button>
           ))}
-        </div>
-
-        {/* Level and XP progress tracker */}
-        <div style={{ background: 'rgba(255, 255, 255, 0.7)', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', marginBottom: '24px', border: '1px solid var(--border-light)', flexWrap: 'wrap', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', position: 'relative', zIndex: 1 }}>
-          <div style={{ flex: 1, minWidth: '200px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px', fontWeight: '800', color: 'var(--text-light)' }}>
-              <span>Scholar Pathway: Level 1</span>
-              <span style={{ color: 'var(--primary)' }}>0% Progress</span>
-            </div>
-            <div style={{ background: 'rgba(232, 230, 250, 0.6)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ background: 'linear-gradient(90deg, var(--primary) 0%, #10B981 100%)', width: `0%`, height: '100%', borderRadius: '4px', transition: 'width 0.4s ease-out' }} />
-            </div>
-          </div>
-          <div style={{ background: 'rgba(127, 86, 217, 0.08)', border: '1px solid rgba(127, 86, 217, 0.12)', padding: '6px 14px', borderRadius: '10px', fontSize: '11px', fontWeight: '800', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <GraduationCap size={15} color="var(--primary)" />
-            Rank #42
-          </div>
-        </div>
-
-        {/* Quick action buttons */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-          <button onClick={() => navigate('/explore')} className="btn-primary" style={{ border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(127,86,217,0.2)' }}>
-            <Compass size={15} /> Find Opportunities
-          </button>
-          <button onClick={() => navigate('/my-events')} style={{ background: '#FFFFFF', color: 'var(--muted-light)', border: '1px solid var(--border-light)', padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Calendar size={15} /> Calendar Schedule
+          <div style={{ flex: 1 }} />
+          <button style={{ 
+            background: 'var(--surface)', border: '1px solid var(--primary)', padding: '8px 16px', 
+            borderRadius: '20px', fontSize: '13px', fontWeight: '700', color: 'var(--primary)', 
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' 
+          }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-light)'} onMouseOut={e => e.currentTarget.style.background = 'var(--surface)'}>
+            View All <ChevronRight size={14} />
           </button>
         </div>
-      </div>
 
-      <div className="home-grid">
-        
-        {/* Mobile Sidebar Widgets (top stack on viewports < 768px) */}
-        {isMobile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '28px' }}>
-            {continueJourneyWidget}
-            {deadlineCenterWidget}
-            {myTeamsWidget}
-            {quickActionsWidget}
-          </div>
-        )}
-
-        {/* LEFT COLUMN: Main tabbed feed panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', overflow: 'hidden' }}>
-
-          {!isMobile && continueJourneyWidget}
-
-          {/* Structured Dynamic Tab Rework */}
-          <div>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0', marginBottom: '20px', scrollbarWidth: 'none' }}>
-              {tabConfigs.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setOpportunityTab(tab.key)}
-                  className="touch-target glass-card"
-                  style={{
-                    background: opportunityTab === tab.key ? '#FFFFFF' : 'transparent',
-                    color: opportunityTab === tab.key ? 'var(--primary)' : '#64748B',
-                    border: opportunityTab === tab.key ? '1px solid #E2E8F0' : '1px solid transparent',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    fontSize: '13px',
-                    fontWeight: '800',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    boxShadow: opportunityTab === tab.key ? '0 2px 8px rgba(0,0,0,0.02)' : 'none',
-                    transition: 'all 0.2s',
-                    minHeight: '44px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab Panel Content */}
-            {activeTabData.length > 0 ? (
-              <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '12px' }}>
-                {activeTabData.map(event => (
-                  <div key={event.id} style={{ minWidth: '310px', flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid #E2E8F0', padding: '6px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: '700', color: 'var(--primary)' }}>
-                      <span>{getRecommendationReason(event, opportunityTab)}</span>
-                      <span>{getMatchPercentage(event)}% Match</span>
-                    </div>
-                    <EventCard event={event} />
-                  </div>
-                ))}
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted-light)' }}>Loading activity...</div>
+        ) : (
+          <HorizontalScroll>
+            {registrations.length === 0 ? (
+              <div style={{ padding: '32px', background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border-light)', width: '100%', textAlign: 'center' }}>
+                <Target size={32} color="var(--muted-light)" style={{ marginBottom: '12px' }} />
+                <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-light)', marginBottom: '4px' }}>No activity yet</h4>
+                <p style={{ fontSize: '13px', color: 'var(--muted-light)' }}>Start exploring competitions to build your profile.</p>
               </div>
             ) : (
-              <div style={{ padding: '36px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px solid #E2E8F0' }}>
-                <p style={{ color: '#64748B', fontSize: '13px', margin: 0 }}>No dynamic matching opportunities in this tab.</p>
-              </div>
+              registrations.map(reg => (
+                <div key={reg.id} onClick={() => navigate(`/events/${reg.id || reg.eventId}`)} style={{ 
+                  minWidth: '280px', background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border-light)', 
+                  padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)', transition: 'transform 0.2s, box-shadow 0.2s'
+                }} onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.05)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)'; }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'var(--bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {reg.image ? <img src={reg.image} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Award size={24} color="var(--muted-light)" />}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-light)', margin: '0 0 4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reg.title}</h4>
+                    <p style={{ fontSize: '12px', color: 'var(--muted-light)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{reg.category || 'Event'}</p>
+                  </div>
+                </div>
+              ))
             )}
-          </div>
-
-          {/* Main Discovery Feed section */}
-          <div>
-            <div style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: '12px', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Opportunity Discovery Feed</h3>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 16px 0' }}>Explore all published milestones, webinar schedules, and competitions</p>
-              
-              {/* Category Pills */}
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none' }}>
-                {['All', 'Hackathons', 'Workshops', 'Coding', 'Webinars', 'Challenges'].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => { setDiscoveryFilter(tab); setVisibleCount(3); }}
-                    className="touch-target glass-card"
-                    style={{
-                      background: discoveryFilter === tab ? 'var(--primary)' : 'white',
-                      color: discoveryFilter === tab ? 'white' : '#475569',
-                      border: '1px solid #E2E8F0',
-                      padding: '12px 18px',
-                      borderRadius: '12px',
-                      fontSize: '13px',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-                      transition: 'all 0.15s',
-                      minHeight: '44px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {discoveryEvents.length > 0 ? (
-                discoveryEvents.slice(0, visibleCount).map(event => (
-                  <div key={event.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'white', padding: '6px 12px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '11px', color: '#64748B', fontWeight: '700' }}>
-                      <span style={{ color: 'var(--primary)' }}>{getMatchPercentage(event)}% Profile Match</span>
-                      <span>•</span>
-                      <span>{event.registeredCount || 0} enrolled</span>
-                      <span>•</span>
-                      <span style={{ color: '#059669' }}>Open Stage</span>
-                    </div>
-                    <EventCard event={event} />
-                  </div>
-                ))
-              ) : (
-                <div style={{ padding: '36px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px solid #E2E8F0' }}>
-                  <p style={{ color: '#64748B', fontSize: '13px', margin: 0 }}>No matches found in this category.</p>
-                </div>
-              )}
-
-              {discoveryEvents.length > visibleCount && (
-                <button
-                  onClick={() => setVisibleCount(prev => prev + 3)}
-                  style={{
-                    width: '100%', padding: '12px', background: 'white',
-                    border: '1px solid #E2E8F0', borderRadius: '12px',
-                    color: 'var(--primary)', fontWeight: '800',
-                    cursor: 'pointer', fontSize: '13px',
-                    transition: 'background 0.2s', textAlign: 'center'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                >
-                  Load More Opportunities 
-                </button>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* RIGHT COLUMN: Sidebar (Widgets Center) */}
-        {!isMobile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* PROFILE SNAPSHOT */}
-            <div className="glass-card" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60px', background: 'var(--primary)', opacity: 0.06 }} />
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), #B692FF)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '22px', fontWeight: '800', border: '4px solid white', position: 'relative', zIndex: 1, boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-                {firstName.charAt(0)}
-              </div>
-              
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '4px', textAlign: 'center' }}>{userProfile?.displayName || 'Developer'}</h3>
-              <p style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: '700', marginBottom: '20px', textAlign: 'center' }}>Top 15% Contributor (Rank #42)</p>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Participations</span>
-                  <span style={{ fontWeight: '700', color: 'var(--text-light)' }}>{registrations.length} Events</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Achievements</span>
-                  <span style={{ fontWeight: '700', color: 'var(--text-light)' }}>0 Badges</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                  <span style={{ color: 'var(--muted-light)' }}>Profile Level</span>
-                  <span style={{ fontWeight: '700', color: '#10B981' }}>Level 1 (0% Strong)</span>
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted-light)', marginBottom: '4px' }}>
-                    <span>Portfolio Progress</span>
-                    <span>85%</span>
-                  </div>
-                  <div style={{ background: 'rgba(232, 230, 250, 0.6)', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ background: '#10B981', width: '85%', height: '100%' }} />
-                  </div>
-                </div>
-              </div>
- 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                <button onClick={() => navigate('/profile')} style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.7)', border: '1px solid var(--border-light)', borderRadius: '10px', fontSize: '11px', fontWeight: '800', color: 'var(--muted-light)', cursor: 'pointer' }}>View Profile</button>
-                <button onClick={() => navigate('/portfolio')} style={{ flex: 1, padding: '10px', background: 'var(--primary)', border: 'none', borderRadius: '10px', fontSize: '11px', fontWeight: '800', color: 'white', cursor: 'pointer' }}>Portfolio</button>
-              </div>
-            </div>
-
-            {/* QUICK ACTIONS */}
-            {quickActionsWidget}
-
-            {/* DEADLINE TRACKER */}
-            {deadlineCenterWidget}
-
-            {/* TEAMS */}
-            {myTeamsWidget}
-
-
-          </div>
+          </HorizontalScroll>
         )}
-
       </div>
+
+      {/* COMPETITIONS SECTION */}
+      <SectionHeader title="Competitions" subtitle="Uncover the most talked-about competitions today." onViewAll={() => navigate('/explore')} />
+      
+      {loading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted-light)' }}>Loading competitions...</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+          {dbEvents.filter(e => !registrations.find(r => (r.id || r.eventId) === e.id)).slice(0, 6).map(event => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </div>
+      )}
 
     </div>
   );

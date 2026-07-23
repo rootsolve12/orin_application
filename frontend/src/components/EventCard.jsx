@@ -1,51 +1,92 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Sparkles, Bookmark } from 'lucide-react';
+import { MapPin, Users, Bookmark, ChevronRight, Globe, Trophy } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { toggleSaveEvent } from '../firebase/firestore';
 
-export default function EventCard({ event, isMatched, matchedSkills }) {
+export default function EventCard({ event, featured }) {
   const navigate = useNavigate();
   const { currentUser, userProfile, refreshProfile } = useAuth();
 
   const savedEvents = userProfile?.savedEvents || [];
   const isSaved = savedEvents.includes(event.id);
   
+  const mode = event.mode || event.format || 'Online';
+  const isOnline = mode.toLowerCase().includes('online');
+
   return (
     <div 
       onClick={() => navigate(`/event/${event.id}`)}
-      className="event-card"
       style={{ 
         background: 'var(--surface)', 
         border: '1px solid var(--border-light)', 
         borderRadius: '16px', 
         overflow: 'hidden', 
         cursor: 'pointer',
-        minWidth: '320px',
+        minWidth: '300px',
+        maxWidth: '400px',
         flex: '1',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'transform 0.2s, box-shadow 0.2s'
+        position: 'relative',
+        transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+      }}
+      onMouseOver={e => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.1)';
+      }}
+      onMouseOut={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
       }}
     >
-      {/* Image Area with Lightning Bolt Placeholder */}
+      {/* Top Accent Strip */}
+      <div style={{ height: '4px', width: '100%', background: 'linear-gradient(90deg, var(--primary), var(--secondary))' }} />
+
+      {/* Top Banner / Image Area */}
       <div style={{ 
-        height: '180px', 
-        background: 'linear-gradient(135deg, #F3F0FF 0%, #EBE4FF 100%)', 
+        height: '140px', 
+        background: 'var(--bg-light)', 
+        borderBottom: '1px solid var(--border-light)',
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        overflow: 'hidden'
       }}>
-        {/* Top Badges */}
-        <div style={{ position: 'absolute', top: '16px', left: '16px', background: 'var(--primary)', color: 'white', fontSize: '12px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px' }}>
-          Featured
-        </div>
+        {/* Abstract pattern overlay for texture */}
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: 'radial-gradient(circle at 2px 2px, var(--primary) 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+
+        {/* Semantic Status Badge */}
+        {(() => {
+          const status = event.status || (featured ? 'active' : 'upcoming');
+          const normalizedStatus = status.toLowerCase();
+          
+          let bgColor = '#3B82F6'; // Blue for Upcoming
+          let label = 'Upcoming';
+          
+          if (normalizedStatus.includes('active') || normalizedStatus.includes('open')) {
+            bgColor = '#10B981'; // Green
+            label = 'Active';
+          } else if (normalizedStatus.includes('closed') || normalizedStatus.includes('offline')) {
+            bgColor = '#EF4444'; // Red
+            label = 'Closed';
+          } else if (normalizedStatus.includes('pending')) {
+            bgColor = '#F59E0B'; // Orange
+            label = 'Pending';
+          }
+
+          return (
+            <div style={{ position: 'absolute', top: '12px', left: '12px', background: bgColor, color: 'white', fontSize: '11px', fontWeight: '800', padding: '6px 12px', borderRadius: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+              {label}
+            </div>
+          );
+        })()}
         
-        {/* Bookmark Button */}
         <button
           onClick={async (e) => {
-            e.stopPropagation(); // Stop navigation to event details
+            e.stopPropagation();
             if (!currentUser) return;
             try {
               await toggleSaveEvent(currentUser.uid, event.id);
@@ -59,8 +100,8 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
             position: 'absolute',
             top: '12px',
             right: '12px',
-            width: '44px',
-            height: '44px',
+            width: '36px',
+            height: '36px',
             borderRadius: '50%',
             background: 'var(--surface)',
             border: '1px solid var(--border-light)',
@@ -68,76 +109,55 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
-            zIndex: 100,
-            color: isSaved ? 'var(--primary)' : 'var(--muted-light)',
-            padding: 0
+            transition: 'all 0.2s ease',
+            color: isSaved ? '#FFD700' : 'var(--muted-light)',
+            padding: 0,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}
+          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseOut={e => e.currentTarget.style.transform = 'none'}
         >
-          <Bookmark size={18} fill={isSaved ? 'var(--primary)' : 'none'} />
+          <Bookmark size={16} fill={isSaved ? '#FFD700' : 'none'} strokeWidth={isSaved ? 0 : 2} />
         </button>
 
-        {/* Category Badge - bottom left */}
-        <div style={{ position: 'absolute', bottom: '16px', left: '16px', background: 'var(--surface)', color: 'var(--primary)', fontSize: '12px', fontWeight: 'bold', padding: '4px 12px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          {event.category || 'Hackathon'}
-        </div>
+        {/* Central Icon */}
+        <Trophy size={40} color="var(--primary)" strokeWidth={1.5} style={{ opacity: 0.8 }} />
         
-        {/* Lightning Bolt Icon */}
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
+        <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: 'white', fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {isOnline ? <Globe size={12} /> : <MapPin size={12} />} {mode}
+        </div>
       </div>
 
+      {/* Content Area */}
       <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--text-light)', marginBottom: '8px' }}>{event.title}</h3>
-        
-        {isMatched && (
-          <div style={{ 
-            alignSelf: 'flex-start',
-            background: 'rgba(123, 97, 255, 0.08)', 
-            border: '1px solid rgba(123, 97, 255, 0.2)', 
-            color: '#7B61FF', 
-            fontSize: '11px', 
-            fontWeight: '700', 
-            padding: '4px 10px', 
-            borderRadius: '20px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            marginBottom: '12px'
-          }}>
-            <Sparkles size={12} fill="#7B61FF" />
-            <span>Matched: {matchedSkills?.join(', ')}</span>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <span style={{ color: 'var(--primary)', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {event.category || 'Event'}
+          </span>
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--border-light)' }} />
+          <span style={{ color: 'var(--muted-light)', fontSize: '12px', fontWeight: '600' }}>
+            {event.difficulty || 'Intermediate'}
+          </span>
+        </div>
 
-        <p style={{ color: 'var(--muted-light)', fontSize: '14px', marginBottom: event.timeline ? '12px' : '20px', flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {event.description || 'Join this exciting event to learn, collaborate, and build amazing projects.'}
+        <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '8px', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {event.title}
+        </h3>
+        
+        <p style={{ fontSize: '14px', color: 'var(--muted-light)', marginBottom: '24px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.5' }}>
+          {event.description || 'Join this exciting opportunity to showcase your skills, build awesome projects, and connect with peers.'}
         </p>
         
-        {event.timeline && (
-          <div style={{ marginBottom: '20px', borderLeft: '2px solid var(--border-light)', paddingLeft: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {event.timeline.map((step, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--primary)', minWidth: '45px' }}>{step.date}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: '500' }}>{step.label}</span>
-              </div>
-            ))}
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-light)' }}>{event.registeredCount || 0}</span>
+              <span style={{ fontSize: '10px', fontWeight: '600', color: 'var(--muted-light)', textTransform: 'uppercase' }}>Registered</span>
+            </div>
           </div>
-        )}
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--muted-light)', fontSize: '13px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Calendar size={14} />
-            {new Date(event.date || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <MapPin size={14} />
-            {event.mode || event.location || 'Online'}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Users size={14} />
-            {event.registeredCount || 0} joined
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontSize: '13px', fontWeight: '700' }}>
+            View Details <ChevronRight size={14} />
           </div>
         </div>
       </div>
