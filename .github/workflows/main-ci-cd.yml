@@ -20,7 +20,7 @@ jobs:
           node-version: '18'
       - name: Install Dependencies
         working-directory: ./frontend
-        run: npm ci || npm install
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
       - name: Build React
         working-directory: ./frontend
         run: npm run build
@@ -56,7 +56,7 @@ jobs:
           sudo apt-get install -y google-chrome-stable
       - name: Install Dependencies
         working-directory: ./selenium-testing
-        run: npm ci || npm install
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
       - name: Run Comprehensive Selenium Suite
         working-directory: ./selenium-testing
         run: npm run test:master
@@ -93,7 +93,7 @@ jobs:
           java-version: '17'
       - name: Install Dependencies
         working-directory: ./frontend
-        run: npm ci || npm install
+        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
       - name: Build Web Assets
         working-directory: ./frontend
         run: npm run build
