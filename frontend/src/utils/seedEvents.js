@@ -1,8 +1,8 @@
+import { createEvent } from '../firebase/firestore';
+
 // Temporary utility
 export const seedEventsOnce = async (currentUser) => {
   if (localStorage.getItem('seeded_real_events_2') || !currentUser) return false;
-  
-  const { createEvent } = await import('../firebase/firestore');
   
   const today = new Date();
   const makeDate = (daysAdd) => new Date(today.getTime() + daysAdd * 86400000).toISOString();
