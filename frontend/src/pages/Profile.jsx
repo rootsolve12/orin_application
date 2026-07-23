@@ -441,10 +441,10 @@ export default function Profile() {
               onClick={() => setIsEditBioModalOpen(true)}
               style={{
                 position: 'absolute',
-                bottom: '-4px',
-                right: '-4px',
-                width: '28px',
-                height: '28px',
+                bottom: '-8px',
+                right: '-8px',
+                width: '44px',
+                height: '44px',
                 borderRadius: '50%',
                 background: 'white',
                 border: 'none',
@@ -497,7 +497,7 @@ export default function Profile() {
       </div>
 
       {/* Main Two-Column Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', alignItems: 'flex-start' }}>
+      <div className="profile-grid">
         
         {/* LEFT COLUMN: Reputation, Skills, Professional Connections */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -506,7 +506,7 @@ export default function Profile() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Academic Bio</h3>
-              <button onClick={() => setIsEditBioModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)' }}><Edit2 size={14} /></button>
+              <button onClick={() => setIsEditBioModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}><Edit2 size={16} /></button>
             </div>
             <p style={{ fontSize: '13px', lineHeight: '1.6', color: 'var(--text-light)', opacity: 0.85, whiteSpace: 'pre-wrap', margin: 0 }}>
               {bio}
@@ -517,7 +517,7 @@ export default function Profile() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Reputation Center</h3>
-              <button onClick={() => setIsEditReputationModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)' }}><Edit2 size={14} /></button>
+              <button onClick={() => setIsEditReputationModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}><Edit2 size={16} /></button>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -576,8 +576,8 @@ export default function Profile() {
                   border: 'none', 
                   color: 'var(--primary)', 
                   borderRadius: '50%', 
-                  width: '24px', 
-                  height: '24px', 
+                  width: '44px', 
+                  height: '44px', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
@@ -639,7 +639,7 @@ export default function Profile() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.5px', margin: 0 }}>Professional Links</h3>
-              <button onClick={() => setIsEditLinksModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)' }}><Edit2 size={14} /></button>
+              <button onClick={() => setIsEditLinksModalOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-light)', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px' }}><Edit2 size={16} /></button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -779,13 +779,14 @@ export default function Profile() {
                   color: 'white',
                   border: 'none',
                   borderRadius: '12px',
-                  padding: '6px 14px',
-                  fontSize: '12px',
+                  padding: '12px 18px',
+                  fontSize: '13px',
                   fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px'
+                  gap: '6px',
+                  minHeight: '44px'
                 }}
               >
                 <Plus size={14} /> Add Project
@@ -966,8 +967,9 @@ export default function Profile() {
 
       {/* EDIT PROFESSIONAL LINKS MODAL */}
       {isEditLinksModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '450px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', color: '#1A1A1A' }}>
+        <div className="responsive-modal-overlay" onClick={() => setIsEditLinksModalOpen(false)}>
+          <div className="responsive-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '-12px auto 20px auto' }} className="mobile-only" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Edit Professional Profiles</h3>
               <button onClick={() => setIsEditLinksModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
@@ -1040,8 +1042,9 @@ export default function Profile() {
 
       {/* EDIT ACADEMIC BIO MODAL */}
       {isEditBioModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '500px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', color: '#1A1A1A' }}>
+        <div className="responsive-modal-overlay" onClick={() => setIsEditBioModalOpen(false)}>
+          <div className="responsive-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '-12px auto 20px auto' }} className="mobile-only" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Edit Profile Credentials</h3>
               <button onClick={() => setIsEditBioModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
@@ -1092,8 +1095,9 @@ export default function Profile() {
 
       {/* ADD PORTFOLIO PROJECT MODAL */}
       {isAddProjectModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '500px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', color: '#1A1A1A' }}>
+        <div className="responsive-modal-overlay" onClick={() => setIsAddProjectModalOpen(false)}>
+          <div className="responsive-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '-12px auto 20px auto' }} className="mobile-only" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Add Portfolio Showcase Item</h3>
               <button onClick={() => setIsAddProjectModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
@@ -1169,8 +1173,9 @@ export default function Profile() {
 
       {/* ADD SKILL PROGRESS MODAL */}
       {isAddSkillModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '400px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', color: '#1A1A1A' }}>
+        <div className="responsive-modal-overlay" onClick={() => setIsAddSkillModalOpen(false)}>
+          <div className="responsive-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '-12px auto 20px auto' }} className="mobile-only" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Add Skill Progress</h3>
               <button onClick={() => setIsAddSkillModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
@@ -1225,8 +1230,9 @@ export default function Profile() {
 
       {/* EDIT SKILL PROGRESS MODAL */}
       {isEditSkillModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '400px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', color: '#1A1A1A' }}>
+        <div className="responsive-modal-overlay" onClick={() => setIsEditSkillModalOpen(false)}>
+          <div className="responsive-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '-12px auto 20px auto' }} className="mobile-only" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Edit Skill Progress</h3>
               <button onClick={() => setIsEditSkillModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
@@ -1281,8 +1287,9 @@ export default function Profile() {
 
       {/* EDIT ACADEMIC REPUTATION MODAL */}
       {isEditReputationModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '20px', width: '450px', boxShadow: '0 12px 36px rgba(0,0,0,0.15)', color: '#1A1A1A' }}>
+        <div className="responsive-modal-overlay" onClick={() => setIsEditReputationModalOpen(false)}>
+          <div className="responsive-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ width: '40px', height: '4px', background: '#E2E8F0', borderRadius: '2px', margin: '-12px auto 20px auto' }} className="mobile-only" />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Edit Academic Reputation</h3>
               <button onClick={() => setIsEditReputationModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>

@@ -29,9 +29,6 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [resumeFile, setResumeFile] = useState(null);
-  const [profilePicFile, setProfilePicFile] = useState(null);
-  const [profilePicPreview, setProfilePicPreview] = useState(null);
-  const picInputRef = useRef();
   const resumeInputRef = useRef();
 
   const [formData, setFormData] = useState({
@@ -65,12 +62,7 @@ export default function Onboarding() {
     });
   };
 
-  const handleProfilePic = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setProfilePicFile(file);
-    setProfilePicPreview(URL.createObjectURL(file));
-  };
+
 
   const handleResumeSelect = (e) => {
     const file = e.target.files[0];
@@ -92,16 +84,7 @@ export default function Onboarding() {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      let photoURL = currentUser?.photoURL || null;
       let resumeUrl = null;
-
-      if (profilePicFile) {
-        photoURL = await uploadToStorage(
-          profilePicFile,
-          `profiles/${currentUser.uid}/avatar_${Date.now()}`,
-          null
-        );
-      }
 
       if (resumeFile) {
         resumeUrl = await uploadToStorage(
@@ -113,7 +96,6 @@ export default function Onboarding() {
 
       const payload = {
         ...formData,
-        photoURL,
         resumeUrl,
         onboardingComplete: true,
         updatedAt: new Date().toISOString(),
@@ -196,32 +178,22 @@ export default function Onboarding() {
           </div>
         </div>
 
-        {/* Step 1: Identity + Profile Picture */}
+        {/* Step 1: Identity */}
         {step === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Profile Picture Upload */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div
-                onClick={() => picInputRef.current.click()}
-                style={{
-                  width: 96, height: 96, borderRadius: '24px', cursor: 'pointer',
-                  background: profilePicPreview ? 'transparent' : '#F3F0FF',
-                  border: '2px dashed #C4B5FD', overflow: 'hidden',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative',
-                }}
-              >
-                {profilePicPreview
-                  ? <img src={profilePicPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: '36px' }}>📷</span>
-                }
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '20px 0' }}>
+            <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+              <div style={{
+                width: '72px', height: '72px', background: '#F0EDFF', color: '#7B61FF',
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '32px', margin: '0 auto 16px', fontWeight: 'bold'
+              }}>
+                👋
               </div>
-              <button type="button" onClick={() => picInputRef.current.click()} style={{ fontSize: '13px', color: '#7B61FF', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}>
-                {profilePicPreview ? 'Change Photo' : 'Upload Profile Photo'}
-              </button>
-              <input ref={picInputRef} type="file" accept="image/*" onChange={handleProfilePic} style={{ display: 'none' }} />
+              <p style={{ color: '#495057', fontSize: '15px', fontWeight: '600', margin: 0 }}>
+                Let's start by introducing yourself!
+              </p>
             </div>
-
+            
             <div>
               <label style={labelStyle}>Full Name *</label>
               <input style={inputStyle} value={formData.displayName} onChange={e => handleChange('displayName', e.target.value)} placeholder="e.g. Arjun Kumar" />
