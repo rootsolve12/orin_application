@@ -14,6 +14,7 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
   return (
     <div 
       onClick={() => navigate(`/event/${event.id}`)}
+      className="event-card"
       style={{ 
         background: 'var(--surface)', 
         border: '1px solid var(--border-light)', 
@@ -25,14 +26,6 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
         display: 'flex',
         flexDirection: 'column',
         transition: 'transform 0.2s, box-shadow 0.2s'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.05)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'none';
-        e.currentTarget.style.boxShadow = 'none';
       }}
     >
       {/* Image Area with Lightning Bolt Placeholder */}
@@ -61,12 +54,13 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
               console.error('Error toggling event bookmark:', err);
             }
           }}
+          className="touch-target"
           style={{
             position: 'absolute',
             top: '12px',
             right: '12px',
-            width: '34px',
-            height: '34px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             background: 'var(--surface)',
             border: '1px solid var(--border-light)',
@@ -80,7 +74,7 @@ export default function EventCard({ event, isMatched, matchedSkills }) {
             padding: 0
           }}
         >
-          <Bookmark size={16} fill={isSaved ? 'var(--primary)' : 'none'} />
+          <Bookmark size={18} fill={isSaved ? 'var(--primary)' : 'none'} />
         </button>
 
         {/* Category Badge - bottom left */}

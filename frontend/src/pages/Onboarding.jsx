@@ -144,12 +144,16 @@ export default function Onboarding() {
       type="button"
       onClick={onClick}
       style={{
-        padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '500',
+        padding: '12px 20px', borderRadius: '24px', fontSize: '14px', fontWeight: '600',
         border: selected ? 'none' : '1px solid #E9ECEF',
         background: selected ? '#7B61FF' : 'white',
         color: selected ? 'white' : '#6C757D',
         cursor: 'pointer', transition: 'all 0.15s',
         whiteSpace: 'nowrap',
+        minHeight: '44px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
       {selected && '✓ '}{label}
@@ -157,9 +161,10 @@ export default function Onboarding() {
   );
 
   const inputStyle = {
-    width: '100%', padding: '12px 16px', border: '1px solid #E9ECEF',
-    borderRadius: '10px', fontSize: '15px', outline: 'none', boxSizing: 'border-box',
+    width: '100%', padding: '14px 16px', border: '1px solid #E9ECEF',
+    borderRadius: '10px', fontSize: '16px', outline: 'none', boxSizing: 'border-box',
     background: 'white',
+    minHeight: '48px',
   };
 
   const labelStyle = { display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: '#374151' };
@@ -385,13 +390,14 @@ export default function Onboarding() {
         )}
 
         {/* Navigation Buttons */}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+        <div className="onboarding-buttons-container">
           {step > 1 && (
             <button
               onClick={() => setStep(s => s - 1)}
               style={{
                 flex: 1, padding: '14px', borderRadius: '10px', background: 'white',
                 color: '#7B61FF', border: '1px solid #7B61FF', cursor: 'pointer', fontWeight: '600',
+                minHeight: '48px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
               }}
             >
               ← Back
@@ -408,6 +414,7 @@ export default function Onboarding() {
                 color: canProceed() ? 'white' : '#6C757D',
                 border: 'none', cursor: canProceed() ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '15px',
                 transition: 'all 0.2s',
+                minHeight: '48px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
               }}
             >
               Continue →
@@ -421,6 +428,7 @@ export default function Onboarding() {
                 background: saving ? '#E9ECEF' : 'linear-gradient(135deg, #7B61FF, #9D88FF)',
                 color: saving ? '#6C757D' : 'white',
                 border: 'none', cursor: saving ? 'not-allowed' : 'pointer', fontWeight: '600', fontSize: '15px',
+                minHeight: '48px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
               }}
             >
               {saving ? 'Saving your profile...' : '🚀 Complete Setup'}

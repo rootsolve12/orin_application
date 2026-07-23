@@ -285,6 +285,7 @@ export default function Home() {
           <button
             key={idx}
             onClick={() => navigate(action.path)}
+            className="touch-target glass-card"
             style={{
               background: 'white',
               border: '1px solid #E2E8F0',
@@ -298,15 +299,9 @@ export default function Home() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: '8px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.03)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = 'none';
+              width: '100%',
+              minHeight: '80px',
+              justifyContent: 'center'
             }}
           >
             <span style={{ display: 'flex', padding: '8px', borderRadius: '50%', background: action.bg, color: action.color }}>
@@ -427,18 +422,23 @@ export default function Home() {
                 <button
                   key={tab.key}
                   onClick={() => setOpportunityTab(tab.key)}
+                  className="touch-target glass-card"
                   style={{
                     background: opportunityTab === tab.key ? '#FFFFFF' : 'transparent',
                     color: opportunityTab === tab.key ? 'var(--primary)' : '#64748B',
                     border: opportunityTab === tab.key ? '1px solid #E2E8F0' : '1px solid transparent',
-                    padding: '8px 16px',
+                    padding: '12px 16px',
                     borderRadius: '12px',
                     fontSize: '13px',
                     fontWeight: '800',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     boxShadow: opportunityTab === tab.key ? '0 2px 8px rgba(0,0,0,0.02)' : 'none',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    minHeight: '44px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
                   {tab.label}
@@ -473,23 +473,28 @@ export default function Home() {
               <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 16px 0' }}>Explore all published milestones, webinar schedules, and competitions</p>
               
               {/* Category Pills */}
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none' }}>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none' }}>
                 {['All', 'Hackathons', 'Workshops', 'Coding', 'Webinars', 'Challenges'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => { setDiscoveryFilter(tab); setVisibleCount(3); }}
+                    className="touch-target glass-card"
                     style={{
                       background: discoveryFilter === tab ? 'var(--primary)' : 'white',
                       color: discoveryFilter === tab ? 'white' : '#475569',
                       border: '1px solid #E2E8F0',
-                      padding: '6px 14px',
-                      borderRadius: '10px',
-                      fontSize: '12px',
-                      fontWeight: '700',
+                      padding: '12px 18px',
+                      borderRadius: '12px',
+                      fontSize: '13px',
+                      fontWeight: '800',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
-                      transition: 'all 0.15s'
+                      transition: 'all 0.15s',
+                      minHeight: '44px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
                     {tab}

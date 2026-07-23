@@ -522,3 +522,125 @@ body {
   }
 }
 
+/* Mobile-First Active Feedback & Touch Targets */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Native Tap Active Press States */
+.btn-primary:active,
+.glass-card:active,
+.event-card:active,
+.bottom-nav-link:active {
+  transform: scale(0.97) !important;
+  opacity: 0.95;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Bottom Sheet Drawer for Mobile Navigation */
+.mobile-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 2002;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+.mobile-bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: #E2E8F0;
+  border-radius: 2px;
+  margin: 12px auto;
+  flex-shrink: 0;
+}
+
+/* Mobile Form Inputs Font Size Fix (Prevents iOS zoom) */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Responsive Drawer (Sidebar on Desktop, Bottom Sheet on Mobile) */
+.app-drawer {
+  position: fixed;
+  top: 0;
+  width: 280px;
+  height: 100%;
+  background: white;
+  z-index: 2001;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-drawer.closed {
+  left: -300px;
+}
+
+.app-drawer.open {
+  left: 0;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .app-drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+  }
+  
+  .app-drawer.closed {
+    left: 0;
+    transform: translateY(100%);
+  }
+  
+  .app-drawer.open {
+    left: 0;
+    transform: translateY(0);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Onboarding Buttons Stack Flow */
+.onboarding-buttons-container {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+@media (max-width: 768px) {
+  .onboarding-buttons-container {
+    flex-direction: column-reverse;
+  }
+  
+  .onboarding-buttons-container button {
+    width: 100%;
+  }
+}
+
+
+
+

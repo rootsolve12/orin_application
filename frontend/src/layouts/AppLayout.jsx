@@ -99,7 +99,7 @@ export default function AppLayout({ children }) {
         <NotificationPopover />
       </header>
 
-      {/* Slide-out Drawer */}
+      {/* Slide-out Drawer Backdrop */}
       {isDrawerOpen && (
         <div 
           style={{ 
@@ -109,22 +109,17 @@ export default function AppLayout({ children }) {
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
-      <div 
-        style={{
-          position: 'fixed', top: 0, left: isDrawerOpen ? 0 : '-300px', 
-          width: '280px', height: '100%', background: 'white', 
-          zIndex: 2001, transition: 'left 0.3s ease',
-          display: 'flex', flexDirection: 'column',
-          boxShadow: isDrawerOpen ? '4px 0 24px rgba(0,0,0,0.1)' : 'none'
-        }}
-      >
+      <div className={`app-drawer ${isDrawerOpen ? 'open' : 'closed'}`}>
+        {/* Mobile Bottom Sheet Handle */}
+        <div className="bottom-sheet-handle mobile-only" style={{ display: 'none' }} className="mobile-only bottom-sheet-handle" />
+        
         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '18px' }}>
               <img src="/master_icon.png" alt="Orin Logo" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'contain' }} />
               Orin
             </div>
-            <button onClick={() => setIsDrawerOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => setIsDrawerOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={24} color="var(--text-light)" />
             </button>
           </div>
@@ -153,7 +148,7 @@ export default function AppLayout({ children }) {
               onClick={() => setIsDrawerOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px',
-                color: 'var(--text)', textDecoration: 'none', fontWeight: '500'
+                color: 'var(--text)', textDecoration: 'none', fontWeight: '500', minHeight: '48px'
               }}
             >
               <span style={{ color: 'var(--text-light)' }}>{item.icon}</span>
@@ -164,15 +159,15 @@ export default function AppLayout({ children }) {
 
         <div style={{ borderTop: '1px solid var(--border-light)', padding: '16px 0' }}>
           <div style={{ display: 'flex', gap: '16px', padding: '0 24px', marginBottom: '16px' }}>
-            <Link to="/privacy-policy" onClick={() => setIsDrawerOpen(false)} style={{ color: 'var(--text-light)', fontSize: '12px', textDecoration: 'none' }}>Privacy Policy</Link>
-            <Link to="/terms-of-service" onClick={() => setIsDrawerOpen(false)} style={{ color: 'var(--text-light)', fontSize: '12px', textDecoration: 'none' }}>Terms of Service</Link>
+            <Link to="/privacy-policy" onClick={() => setIsDrawerOpen(false)} style={{ color: 'var(--text-light)', fontSize: '12px', textDecoration: 'none', minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>Privacy Policy</Link>
+            <Link to="/terms-of-service" onClick={() => setIsDrawerOpen(false)} style={{ color: 'var(--text-light)', fontSize: '12px', textDecoration: 'none', minHeight: '44px', display: 'inline-flex', alignItems: 'center' }}>Terms of Service</Link>
           </div>
           <button 
             onClick={handleLogout}
             style={{
               display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px',
               color: '#DC3545', textDecoration: 'none', fontWeight: '500',
-              background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left'
+              background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', minHeight: '48px'
             }}
           >
             <LogOut size={20} /> Sign Out
@@ -203,13 +198,7 @@ export default function AppLayout({ children }) {
             <Link 
               key={idx} 
               to={item.path}
-              className={isActive ? 'bottom-nav-link active' : 'bottom-nav-link'}
-              onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = 'rgba(127, 86, 217, 0.03)';
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) e.currentTarget.style.background = 'transparent';
-              }}
+              className={isActive ? 'bottom-nav-link active touch-target' : 'bottom-nav-link touch-target'}
             >
               {item.icon}
               <span style={{ fontSize: '11px', fontWeight: isActive ? '800' : '600', letterSpacing: '-0.2px' }}>{item.label}</span>
