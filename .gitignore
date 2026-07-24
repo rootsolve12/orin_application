@@ -53,3 +53,5 @@ app.*.map.json
 **/.env.production
 **/.env.staging
 
+# Test Reports
+selenium-testing/reports/

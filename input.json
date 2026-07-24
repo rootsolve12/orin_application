@@ -1,6 +1,0 @@
-{
-  "baseUrl": "http://localhost:5000",
-  "participant": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfMTIzIiwiZW1haWwiOiJwYXJ0aWNpcGFudEBzcm1pc3QuZWR1LmluIiwicm9sZSI6InBhcnRpY2lwYW50IiwiaWF0IjoxNzgxODA4MTA2fQ.NXkE4jgaM44vb0o2zWnz2GhIaGMiHtkXwbSuDWIWHqs",
-  "organizer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfMTIzIiwiZW1haWwiOiJvcmdhbml6ZXJAc3JtaXN0LmVkdS5pbiIsInJvbGUiOiJvcmdhbml6ZXIiLCJpYXQiOjE3ODE4MDgxMDZ9.3oPI_Cr88FK_dtAZQnmMWGC62el20URysFZY7C14Ib4",
-  "admin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJfMTIzIiwiZW1haWwiOiJhZG1pbkBzcm1pc3QuZWR1LmluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzgxODA4MTA2fQ.bO-sDs8z4CdYU8tX2GNU-rhKuwz2rS_NW0c3Akli2es"
-}

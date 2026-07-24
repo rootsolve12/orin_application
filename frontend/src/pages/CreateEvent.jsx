@@ -7,7 +7,7 @@ import {
   FileText, CheckCircle2, Shield, Settings2, Info, ArrowRight, Save, Layout
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { createEvent, uploadEventBanner } from '../firebase/firestore';
+import { createEvent, uploadEventBanner, updateUserProfile } from '../firebase/firestore';
 import EventCard from '../components/EventCard';
 
 const PHASES = [
@@ -48,7 +48,7 @@ const TEMPLATES = [
 
 export default function CreateEvent() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile, refreshProfile } = useAuth();
   
   const [currentPhase, setCurrentPhase] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,6 +57,15 @@ export default function CreateEvent() {
   const [uploadProgress, setUploadProgress] = useState(null);
   const [showLivePreview, setShowLivePreview] = useState(window.innerWidth > 1024);
   const [hasAppliedTemplate, setHasAppliedTemplate] = useState(false);
+
+  // Auto-upgrade user to organizer role in Firestore if they are logged in as a participant
+  useEffect(() => {
+    if (currentUser && userProfile && userProfile.role !== 'organizer') {
+      updateUserProfile(currentUser.uid, { role: 'organizer' }).then(() => {
+        refreshProfile();
+      });
+    }
+  }, [currentUser, userProfile, refreshProfile]);
 
   // Layout responsiveness
   useEffect(() => {
@@ -113,10 +122,54 @@ export default function CreateEvent() {
     setHasAppliedTemplate(true);
   };
 
+  const compressImage = (file, maxWidth = 800, maxHeight = 400, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleBannerUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Show local preview instantly
+    const previewUrl = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, bannerUrl: previewUrl }));
     setUploadProgress(0);
+
     try {
       const url = await uploadEventBanner(file, (progress) => {
         setUploadProgress(Math.round(progress));
@@ -124,8 +177,14 @@ export default function CreateEvent() {
       setFormData(prev => ({ ...prev, bannerUrl: url }));
       setUploadProgress(null);
     } catch (err) {
-      console.error("Banner upload failed:", err);
-      alert("Failed to upload image. Please try again.");
+      console.warn("Storage upload failed, falling back to compressed Base64:", err);
+      try {
+        const base64Url = await compressImage(file);
+        setFormData(prev => ({ ...prev, bannerUrl: base64Url }));
+      } catch (compressErr) {
+        console.error("Compression failed:", compressErr);
+        alert("Failed to process image.");
+      }
       setUploadProgress(null);
     }
   };
@@ -274,6 +333,18 @@ export default function CreateEvent() {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: 'var(--muted-light)' }}>
                     <ImageIcon size={32} opacity={0.5} />
                     <span style={{ fontSize: '13px', fontWeight: '600' }}>Click or drag to upload banner (1200x600px)</span>
+                  </div>
+                )}
+                {uploadProgress !== null && (
+                  <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', gap: '12px', padding: '0 24px', zIndex: 10
+                  }}>
+                    <span style={{ fontSize: '12px', fontWeight: '700' }}>Uploading banner... {uploadProgress}%</span>
+                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${uploadProgress}%`, height: '100%', background: '#7B61FF', transition: 'width 0.1s ease' }} />
+                    </div>
                   </div>
                 )}
                 <input type="file" accept="image/*" onChange={handleBannerUpload} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />

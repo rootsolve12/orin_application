@@ -2,7 +2,8 @@ import { createEvent } from '../firebase/firestore';
 
 // Temporary utility
 export const seedEventsOnce = async (currentUser) => {
-  if (localStorage.getItem('seeded_real_events_2') || !currentUser) return false;
+  return false;
+  // Previously seeded mock events...
   
   const today = new Date();
   const makeDate = (daysAdd) => new Date(today.getTime() + daysAdd * 86400000).toISOString();

@@ -34,14 +34,24 @@ import {
   updateEvent, 
   issueCertificate,
   checkInParticipant,
-  addEmergencyAlert
+  addEmergencyAlert,
+  updateUserProfile
 } from '../firebase/firestore';
 
 export default function Organizer() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile, refreshProfile } = useAuth();
   
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Auto-upgrade user to organizer role in Firestore if they are logged in as a participant
+  useEffect(() => {
+    if (currentUser && userProfile && userProfile.role !== 'organizer') {
+      updateUserProfile(currentUser.uid, { role: 'organizer' }).then(() => {
+        refreshProfile();
+      });
+    }
+  }, [currentUser, userProfile, refreshProfile]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
