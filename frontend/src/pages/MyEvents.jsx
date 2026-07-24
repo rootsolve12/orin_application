@@ -169,7 +169,7 @@ export default function MyEvents() {
       const eventEndStr = parseToLocalDateString(e.endDate) || eventStartStr;
       const regDeadlineStr = parseToLocalDateString(e.registrationDeadline) || addDays(eventStartStr, -4);
 
-      // 1. Registered Event (Purple: #7B61FF)
+      // 1. Registered Event (Purple: var(--primary))
       list.push({
         id: `${e.id}_event`,
         eventId: e.id,
@@ -178,7 +178,7 @@ export default function MyEvents() {
         type: 'event',
         date: eventStartStr,
         time: `${e.startTime || '09:00'} - ${e.endTime || '17:00'}`,
-        color: '#7B61FF',
+        color: 'var(--primary)',
         colorName: 'purple',
         location: e.location || 'Online',
         stage: e.rounds?.[e.currentRoundIndex || 0] || 'Registration',
@@ -545,7 +545,7 @@ export default function MyEvents() {
     });
 
     const colorOrder = {
-      '#7B61FF': 1, // purple
+      'var(--primary)': 1, // purple
       '#3B82F6': 2, // blue
       '#F59E0B': 3, // orange
       '#EF4444': 4, // red
@@ -598,7 +598,7 @@ export default function MyEvents() {
           
           if (isDone) circleBg = '#10B981';
           if (isCurrent) {
-            circleBg = '#7B61FF';
+            circleBg = 'var(--primary)';
           }
           
           return (
@@ -609,7 +609,7 @@ export default function MyEvents() {
                 borderRadius: '50%', 
                 background: circleBg, 
                 border: border, 
-                boxShadow: isCurrent ? '0 0 0 3px rgba(123,97,255,0.2)' : 'none',
+                boxShadow: isCurrent ? '0 0 0 3px rgba(109, 40, 217,0.2)' : 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -617,7 +617,7 @@ export default function MyEvents() {
               <span style={{ 
                 fontSize: '9px', 
                 fontWeight: (isCurrent || isDone) ? '700' : '500', 
-                color: isCurrent ? '#7B61FF' : (isDone ? '#10B981' : '#868E96'), 
+                color: isCurrent ? 'var(--primary)' : (isDone ? '#10B981' : '#868E96'), 
                 marginTop: '4px',
                 transform: 'scale(0.85)'
               }}>{st.substring(0, 5)}</span>
@@ -644,22 +644,22 @@ export default function MyEvents() {
       {/* Title Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1A1A1A', marginBottom: '4px', letterSpacing: '-0.5px' }}>Academic Calendar</h1>
-          <p style={{ color: '#6C757D', fontSize: '14px' }}>Track your scheduled events, assessments, and deadlines</p>
+          <h1 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '4px', letterSpacing: '-0.5px' }}>Academic Calendar</h1>
+          <p style={{ color: 'var(--muted-light)', fontSize: '14px' }}>Track your scheduled events, assessments, and deadlines</p>
         </div>
         
         {/* Actions Menu */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           
           {/* Search Input */}
-          <div style={{ display: 'flex', alignItems: 'center', background: 'white', borderRadius: '24px', padding: '8px 16px', border: '1px solid #E9ECEF', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-            <Search size={16} color="#868E96" />
+          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', borderRadius: '24px', padding: '8px 16px', border: '1px solid var(--border-light)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            <Search size={16} color="var(--muted-light)" />
             <input 
               type="text"
               placeholder="Search calendar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ border: 'none', background: 'transparent', outline: 'none', paddingLeft: '8px', fontSize: '13px', width: '150px', color: '#212529' }}
+              style={{ border: 'none', background: 'transparent', outline: 'none', paddingLeft: '8px', fontSize: '13px', width: '150px', color: 'var(--text-light)' }}
             />
           </div>
 
@@ -694,16 +694,16 @@ export default function MyEvents() {
           </button>
 
           {/* Toggle View Mode */}
-          <div style={{ display: 'flex', background: '#F1F3F5', borderRadius: '24px', padding: '4px', border: '1px solid #E9ECEF' }}>
+          <div style={{ display: 'flex', background: 'var(--bg-light)', borderRadius: '24px', padding: '4px', border: '1px solid var(--border-light)' }}>
             <button 
               onClick={() => { setViewMode('Month'); setSelectedDate(null); }}
               style={{ 
                 display: 'flex', alignItems: 'center', gap: '8px', 
-                background: viewMode === 'Month' ? '#7B61FF' : 'transparent', 
+                background: viewMode === 'Month' ? 'var(--primary)' : 'transparent', 
                 color: viewMode === 'Month' ? 'white' : '#495057', 
                 border: 'none', padding: '8px 16px', borderRadius: '20px', 
                 fontSize: '13px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease',
-                boxShadow: viewMode === 'Month' ? '0 2px 8px rgba(123, 97, 255, 0.25)' : 'none'
+                boxShadow: viewMode === 'Month' ? '0 2px 8px rgba(109, 40, 217, 0.25)' : 'none'
               }}>
               <CalendarIcon size={14} /> Month
             </button>
@@ -711,11 +711,11 @@ export default function MyEvents() {
               onClick={() => { setViewMode('Week'); setSelectedDate(null); }}
               style={{ 
                 display: 'flex', alignItems: 'center', gap: '8px', 
-                background: viewMode === 'Week' ? '#7B61FF' : 'transparent', 
+                background: viewMode === 'Week' ? 'var(--primary)' : 'transparent', 
                 color: viewMode === 'Week' ? 'white' : '#495057', 
                 border: 'none', padding: '8px 16px', borderRadius: '20px', 
                 fontSize: '13px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease',
-                boxShadow: viewMode === 'Week' ? '0 2px 8px rgba(123, 97, 255, 0.25)' : 'none'
+                boxShadow: viewMode === 'Week' ? '0 2px 8px rgba(109, 40, 217, 0.25)' : 'none'
               }}>
               <LayoutGrid size={14} /> Week
             </button>
@@ -727,50 +727,50 @@ export default function MyEvents() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
         
         {/* Card: Active Events */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #E9ECEF', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '20px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: '700', color: '#6C757D', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Events</span>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7B61FF' }} />
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--muted-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Active Events</span>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '24px', fontWeight: '800', color: '#1A1A1A' }}>{weekly.activeEvents.length}</span>
-            <span style={{ fontSize: '11px', color: '#868E96', fontWeight: '600' }}>this week</span>
+            <span style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-light)' }}>{weekly.activeEvents.length}</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>this week</span>
           </div>
         </div>
 
         {/* Card: Upcoming Assessments */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #E9ECEF', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '20px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: '700', color: '#6C757D', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assessments</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--muted-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assessments</span>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3B82F6' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '24px', fontWeight: '800', color: '#1A1A1A' }}>{weekly.upcomingAssessments.length}</span>
-            <span style={{ fontSize: '11px', color: '#868E96', fontWeight: '600' }}>due</span>
+            <span style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-light)' }}>{weekly.upcomingAssessments.length}</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>due</span>
           </div>
         </div>
 
         {/* Card: Pending Submissions */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #E9ECEF', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '20px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: '700', color: '#6C757D', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Submissions</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--muted-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Submissions</span>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '24px', fontWeight: '800', color: '#1A1A1A' }}>{weekly.pendingSubmissions.length}</span>
-            <span style={{ fontSize: '11px', color: '#868E96', fontWeight: '600' }}>pending</span>
+            <span style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-light)' }}>{weekly.pendingSubmissions.length}</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>pending</span>
           </div>
         </div>
 
         {/* Card: Upcoming Deadlines */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #E9ECEF', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '20px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: '700', color: '#6C757D', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Critical Deadlines</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--muted-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Critical Deadlines</span>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '24px', fontWeight: '800', color: '#1A1A1A' }}>{weekly.upcomingDeadlines.length}</span>
-            <span style={{ fontSize: '11px', color: '#868E96', fontWeight: '600' }}>urgent</span>
+            <span style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-light)' }}>{weekly.upcomingDeadlines.length}</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>urgent</span>
           </div>
         </div>
 
@@ -788,22 +788,22 @@ export default function MyEvents() {
         {/* Left Column: Calendar Component */}
         <div style={{ 
           flex: '1 1 450px', 
-          background: 'white', 
+          background: 'var(--surface)', 
           borderRadius: '24px', 
           padding: '24px', 
           boxShadow: '0 8px 30px rgba(0, 0, 0, 0.03)', 
-          border: '1px solid #F1F3F5' 
+          border: '1px solid var(--border-light)' 
         }}>
           
           {/* Calendar Navigation Controller */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#212529' }}>{getHeaderLabel()}</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-light)' }}>{getHeaderLabel()}</h2>
               <button 
                 onClick={handleToday}
                 style={{
-                  background: '#F1F0FF',
-                  color: '#7B61FF',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
                   border: 'none',
                   borderRadius: '12px',
                   padding: '6px 12px',
@@ -813,7 +813,7 @@ export default function MyEvents() {
                   transition: 'background 0.2s',
                 }}
                 onMouseOver={(e) => (e.currentTarget.style.background = '#E5E2FF')}
-                onMouseOut={(e) => (e.currentTarget.style.background = '#F1F0FF')}
+                onMouseOut={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
               >
                 Today
               </button>
@@ -823,8 +823,8 @@ export default function MyEvents() {
               <button 
                 onClick={handlePrev} 
                 style={{ 
-                  background: '#F8F9FA', 
-                  border: '1px solid #E9ECEF', 
+                  background: 'var(--bg-light)', 
+                  border: '1px solid var(--border-light)', 
                   borderRadius: '12px', 
                   width: '36px', 
                   height: '36px', 
@@ -837,13 +837,13 @@ export default function MyEvents() {
                 onMouseOver={(e) => (e.currentTarget.style.background = '#E9ECEF')}
                 onMouseOut={(e) => (e.currentTarget.style.background = '#F8F9FA')}
               >
-                <ChevronLeft size={18} color="#495057" />
+                <ChevronLeft size={18} color="var(--text-light)" />
               </button>
               <button 
                 onClick={handleNext} 
                 style={{ 
-                  background: '#F8F9FA', 
-                  border: '1px solid #E9ECEF', 
+                  background: 'var(--bg-light)', 
+                  border: '1px solid var(--border-light)', 
                   borderRadius: '12px', 
                   width: '36px', 
                   height: '36px', 
@@ -856,7 +856,7 @@ export default function MyEvents() {
                 onMouseOver={(e) => (e.currentTarget.style.background = '#E9ECEF')}
                 onMouseOut={(e) => (e.currentTarget.style.background = '#F8F9FA')}
               >
-                <ChevronRight size={18} color="#495057" />
+                <ChevronRight size={18} color="var(--text-light)" />
               </button>
             </div>
           </div>
@@ -864,7 +864,7 @@ export default function MyEvents() {
           {/* Weekday Headers */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', marginBottom: '12px' }}>
             {weekDays.map((day, idx) => (
-              <div key={idx} style={{ fontSize: '13px', color: '#868E96', fontWeight: '700', textTransform: 'uppercase', padding: '6px 0' }}>{day}</div>
+              <div key={idx} style={{ fontSize: '13px', color: 'var(--muted-light)', fontWeight: '700', textTransform: 'uppercase', padding: '6px 0' }}>{day}</div>
             ))}
           </div>
           
@@ -876,19 +876,19 @@ export default function MyEvents() {
               const dots = getIndicatorsForDate(day.fullDate);
               
               let cellBg = 'transparent';
-              let textColor = '#212529';
+              let textColor = 'var(--text-light)';
               let border = 'none';
 
               if (day.isPrevMonth || day.isNextMonth) {
-                textColor = '#CED4DA';
+                textColor = 'var(--meta-light)';
               }
               if (isToday) {
-                border = '2px solid #7B61FF';
-                textColor = '#7B61FF';
+                border = '2px solid var(--primary)';
+                textColor = 'var(--primary)';
               }
               if (isSelected) {
-                cellBg = '#7B61FF';
-                textColor = 'white';
+                cellBg = 'var(--primary)';
+                textColor = 'var(--surface)';
                 border = 'none';
               }
 
@@ -911,7 +911,7 @@ export default function MyEvents() {
                     cursor: 'pointer',
                     border: border,
                     transition: 'all 0.2s ease-in-out',
-                    boxShadow: isSelected ? '0 4px 12px rgba(123, 97, 255, 0.3)' : 'none'
+                    boxShadow: isSelected ? '0 4px 12px rgba(109, 40, 217, 0.3)' : 'none'
                   }}
                   className="calendar-cell"
                 >
@@ -947,25 +947,25 @@ export default function MyEvents() {
             gridTemplateColumns: '1fr 1fr', 
             marginTop: '28px', 
             paddingTop: '20px', 
-            borderTop: '1px solid #F1F3F5',
+            borderTop: '1px solid var(--border-light)',
             gap: '12px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7B61FF' }} /> Purple: Registered Events
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} /> Purple: Registered Events
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3B82F6' }} /> Blue: Assessments
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B' }} /> Orange: Submissions
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }} /> Red: Critical Deadlines
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} /> Green: Results
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--text-light)' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EAB308' }} /> Gold: Certificates
             </div>
           </div>
@@ -985,17 +985,17 @@ export default function MyEvents() {
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
-            background: 'white',
+            background: 'var(--surface)',
             padding: '16px 20px',
             borderRadius: '18px',
-            border: '1px solid #F1F3F5',
+            border: '1px solid var(--border-light)',
             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.02)'
           }}>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#212529', marginBottom: '2px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '2px' }}>
                 {selectedDate ? `Planner for ${selectedDate.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}` : `All Upcoming Planner Items`}
               </h3>
-              <p style={{ color: '#868E96', fontSize: '12px', fontWeight: '500' }}>
+              <p style={{ color: 'var(--muted-light)', fontSize: '12px', fontWeight: '500' }}>
                 {selectedDate ? 'Selected Calendar Day' : `${viewMode} View List`}
               </p>
             </div>
@@ -1003,7 +1003,7 @@ export default function MyEvents() {
               <button 
                 onClick={() => setSelectedDate(null)}
                 style={{ 
-                  background: '#F1F3F5', 
+                  background: 'var(--bg-light)', 
                   border: 'none', 
                   borderRadius: '50%', 
                   width: '28px', 
@@ -1014,7 +1014,7 @@ export default function MyEvents() {
                   cursor: 'pointer'
                 }}
               >
-                <X size={14} color="#495057" />
+                <X size={14} color="var(--text-light)" />
               </button>
             )}
           </div>
@@ -1028,25 +1028,25 @@ export default function MyEvents() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {priorities.map((pri) => (
                   <div key={pri.id} style={{ 
-                    background: 'white',
+                    background: 'var(--surface)',
                     borderLeft: `4px solid ${pri.color}`,
                     borderRadius: '12px',
                     padding: '14px',
                     boxShadow: '0 4px 12px rgba(239, 68, 68, 0.04)',
-                    border: '1px solid #F1F3F5',
+                    border: '1px solid var(--border-light)',
                     borderLeftWidth: '4px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '8px'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <span style={{ fontSize: '13px', fontWeight: '700', color: '#212529' }}>{pri.title}</span>
-                      <span style={{ fontSize: '10px', background: `${pri.color}15`, color: pri.color, padding: '2px 6px', borderRadius: '8px', fontWeight: '800', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)' }}>{pri.title}</span>
+                      <span style={{ fontSize: '10px', background: `${pri.color}30` /* enhanced visibility */, color: pri.color, padding: '2px 6px', borderRadius: '8px', fontWeight: '800', textTransform: 'uppercase' }}>
                         {getCountdownText(pri.date)}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '11px', color: '#868E96', fontWeight: '600' }}>Action: {pri.nextAction}</span>
+                      <span style={{ fontSize: '11px', color: 'var(--muted-light)', fontWeight: '600' }}>Action: {pri.nextAction}</span>
                       <button 
                         onClick={() => navigate(`/event/${pri.eventId}/timeline`)}
                         style={{ background: pri.color, color: 'white', border: 'none', borderRadius: '8px', padding: '4px 10px', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
@@ -1062,13 +1062,13 @@ export default function MyEvents() {
 
           {/* Agenda Activity Cards Container */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#495057', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '4px 0 0 0' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '4px 0 0 0' }}>
               Academic Planner Schedule
             </h4>
             
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '20px', border: '1px solid #F1F3F5' }}>
-                <p style={{ color: '#868E96', fontSize: '14px', fontWeight: '500' }}>Loading planner items...</p>
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--border-light)' }}>
+                <p style={{ color: 'var(--muted-light)', fontSize: '14px', fontWeight: '500' }}>Loading planner items...</p>
               </div>
             ) : agendaActivities.length > 0 ? (
               agendaActivities.map((act) => {
@@ -1084,15 +1084,15 @@ export default function MyEvents() {
                       display: 'flex', 
                       flexDirection: 'column',
                       borderRadius: '20px', 
-                      background: 'white',
-                      border: '1px solid #F1F3F5',
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border-light)',
                       boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
                       overflow: 'hidden',
                       transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                     }}
                     onMouseOver={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(123, 97, 255, 0.05)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(109, 40, 217, 0.05)';
                     }}
                     onMouseOut={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
@@ -1108,7 +1108,7 @@ export default function MyEvents() {
                         flexDirection: 'column', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        background: `${act.color}10`,
+                        background: `${act.color}25` /* enhanced visibility */,
                         border: `1px solid ${act.color}33`,
                         borderRadius: '16px',
                         padding: '12px',
@@ -1116,20 +1116,20 @@ export default function MyEvents() {
                         height: '64px'
                       }}>
                         <span style={{ fontSize: '11px', color: act.color, fontWeight: '800', textTransform: 'uppercase' }}>{displayMonth}</span>
-                        <span style={{ fontSize: '22px', fontWeight: '800', color: '#1A1A1A', lineHeight: '1' }}>{displayDay}</span>
+                        <span style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-light)', lineHeight: '1' }}>{displayDay}</span>
                       </div>
 
                       {/* Text details */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#212529', lineHeight: '1.4', margin: 0 }}>
+                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-light)', lineHeight: '1.4', margin: 0 }}>
                             {act.title}
                           </h4>
                           {countdown && (
                             <span style={{ 
                               fontSize: '10px', 
                               fontWeight: '800', 
-                              background: countdown === 'Today' ? '#FFF5F5' : '#F1F3F5',
+                              background: countdown === 'Today' ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-light)',
                               color: countdown === 'Today' ? '#EF4444' : '#6C757D',
                               padding: '2px 8px',
                               borderRadius: '8px',
@@ -1141,19 +1141,19 @@ export default function MyEvents() {
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6C757D', fontSize: '12px', fontWeight: '500' }}>
-                            <Clock size={12} color="#868E96" />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--muted-light)', fontSize: '12px', fontWeight: '500' }}>
+                            <Clock size={12} color="var(--muted-light)" />
                             <span>{act.time}</span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6C757D', fontSize: '12px', fontWeight: '500' }}>
-                            <MapPin size={12} color="#868E96" />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--muted-light)', fontSize: '12px', fontWeight: '500' }}>
+                            <MapPin size={12} color="var(--muted-light)" />
                             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>{act.location}</span>
                           </div>
                         </div>
 
                         {/* Visual Stage Progress Stepper */}
                         <div style={{ marginTop: '4px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', color: '#868E96', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', color: 'var(--muted-light)', marginBottom: '4px' }}>
                             <span>Stage: {act.stage}</span>
                             <span>Step {getStageStepInfo(act.stage).step} of 6</span>
                           </div>
@@ -1166,7 +1166,7 @@ export default function MyEvents() {
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                           <span style={{ 
                             display: 'flex', alignItems: 'center', gap: '4px',
-                            background: `${act.color}15`, color: act.color, 
+                            background: `${act.color}30` /* enhanced visibility */, color: act.color, 
                             padding: '4px 8px', borderRadius: '8px', 
                             fontSize: '11px', fontWeight: '800', textTransform: 'uppercase'
                           }}>
@@ -1174,7 +1174,7 @@ export default function MyEvents() {
                           </span>
                           <span style={{ 
                             display: 'flex', alignItems: 'center', gap: '4px',
-                            background: '#F1F0FF', color: '#7B61FF', 
+                            background: 'var(--primary-light)', color: 'var(--primary)', 
                             padding: '4px 8px', borderRadius: '8px', 
                             fontSize: '11px', fontWeight: '700' 
                           }}>
@@ -1187,8 +1187,8 @@ export default function MyEvents() {
                     {/* Quick Sync & Steer Actions Footer */}
                     <div style={{ 
                       display: 'flex', 
-                      borderTop: '1px solid #F1F3F5', 
-                      background: '#FAFAFB',
+                      borderTop: '1px solid var(--border-light)', 
+                      background: 'var(--bg-light)',
                       padding: '12px 20px',
                       justifyContent: 'space-between',
                       alignItems: 'center'
@@ -1197,7 +1197,7 @@ export default function MyEvents() {
                         onClick={() => addToGoogleCalendar(act)}
                         style={{
                           background: 'none',
-                          color: '#495057',
+                          color: 'var(--text-light)',
                           border: 'none',
                           fontSize: '12px',
                           fontWeight: '600',
@@ -1216,9 +1216,9 @@ export default function MyEvents() {
                         <button 
                           onClick={() => navigate(`/event/${act.eventId}/timeline`)}
                           style={{
-                            background: 'white',
-                            color: '#495057',
-                            border: '1px solid #CED4DA',
+                            background: 'var(--surface)',
+                            color: 'var(--text-light)',
+                            border: '1px solid var(--border-light)',
                             borderRadius: '10px',
                             padding: '6px 12px',
                             fontSize: '12px',
@@ -1237,7 +1237,7 @@ export default function MyEvents() {
                         <button 
                           onClick={() => navigate(`/event/${act.eventId}`)}
                           style={{
-                            background: '#7B61FF',
+                            background: 'var(--primary)',
                             color: 'white',
                             border: 'none',
                             borderRadius: '10px',
@@ -1249,10 +1249,10 @@ export default function MyEvents() {
                             alignItems: 'center',
                             gap: '4px',
                             transition: 'background 0.2s',
-                            boxShadow: '0 2px 6px rgba(123, 97, 255, 0.15)'
+                            boxShadow: '0 2px 6px rgba(109, 40, 217, 0.15)'
                           }}
-                          onMouseOver={(e) => (e.currentTarget.style.background = '#694EE6')}
-                          onMouseOut={(e) => (e.currentTarget.style.background = '#7B61FF')}
+                          onMouseOver={(e) => (e.currentTarget.style.background = 'var(--secondary)')}
+                          onMouseOut={(e) => (e.currentTarget.style.background = 'var(--primary)')}
                         >
                           Details <ExternalLink size={12} />
                         </button>
@@ -1266,9 +1266,9 @@ export default function MyEvents() {
               <div style={{ 
                 textAlign: 'center', 
                 padding: '48px 24px', 
-                background: 'white', 
+                background: 'var(--surface)', 
                 borderRadius: '20px', 
-                border: '1px solid #F1F3F5',
+                border: '1px solid var(--border-light)',
                 boxShadow: '0 4px 15px rgba(0, 0, 0, 0.02)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1276,7 +1276,7 @@ export default function MyEvents() {
                 gap: '12px'
               }}>
                 <div style={{ 
-                  background: '#F8F6FF', 
+                  background: 'var(--primary-light)', 
                   borderRadius: '50%', 
                   width: '48px', 
                   height: '48px', 
@@ -1284,17 +1284,17 @@ export default function MyEvents() {
                   alignItems: 'center', 
                   justifyContent: 'center' 
                 }}>
-                  <CalendarRange size={24} color="#7B61FF" />
+                  <CalendarRange size={24} color="var(--primary)" />
                 </div>
-                <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#212529', margin: 0 }}>No Scheduled Activities</h4>
-                <p style={{ color: '#868E96', fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.4' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-light)', margin: 0 }}>No Scheduled Activities</h4>
+                <p style={{ color: 'var(--muted-light)', fontSize: '13px', margin: '0 0 8px 0', lineHeight: '1.4' }}>
                   There are no assessments, submissions or event deadlines matching this search or date.
                 </p>
                 <button 
                   onClick={() => navigate('/explore')}
                   style={{
-                    background: '#F1F0FF',
-                    color: '#7B61FF',
+                    background: 'var(--primary-light)',
+                    color: 'var(--primary)',
                     border: 'none',
                     borderRadius: '12px',
                     padding: '8px 16px',
@@ -1307,12 +1307,12 @@ export default function MyEvents() {
                     transition: 'all 0.2s'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = '#7B61FF';
+                    e.currentTarget.style.background = 'var(--primary)';
                     e.currentTarget.style.color = 'white';
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.background = '#F1F0FF';
-                    e.currentTarget.style.color = '#7B61FF';
+                    e.currentTarget.style.background = 'var(--primary-light)';
+                    e.currentTarget.style.color = 'var(--primary)';
                   }}
                 >
                   <Compass size={14} /> Browse Opportunities

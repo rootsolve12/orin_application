@@ -261,20 +261,22 @@ export default function AppLayout({ children }) {
         </main>
 
         {/* Floating Explore/Search FAB */}
-        <button 
-          onClick={() => navigate('/explore')}
-          style={{
-            position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-            background: isDarkMode ? 'var(--primary)' : 'var(--text-light)', color: isDarkMode ? 'var(--bg-light)' : 'white', 
-            padding: '14px 28px', borderRadius: '30px', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', 
-            fontWeight: '700', fontSize: '15px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', cursor: 'pointer', zIndex: 100, 
-            transition: 'transform 0.2s ease, background 0.3s, color 0.3s'
-          }}
-          onMouseOver={e => e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)'}
-          onMouseOut={e => e.currentTarget.style.transform = 'translateX(-50%) scale(1)'}
-        >
-          <Search size={18} /> Explore Competitions
-        </button>
+        {location.pathname === '/' && (
+          <button 
+            onClick={() => navigate('/explore')}
+            style={{
+              position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+              background: isDarkMode ? 'var(--primary)' : 'var(--text-light)', color: isDarkMode ? 'var(--bg-light)' : 'white', 
+              padding: '14px 28px', borderRadius: '30px', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', 
+              fontWeight: '700', fontSize: '15px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', cursor: 'pointer', zIndex: 100, 
+              transition: 'transform 0.2s ease, background 0.3s, color 0.3s'
+            }}
+            onMouseOver={e => e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)'}
+            onMouseOut={e => e.currentTarget.style.transform = 'translateX(-50%) scale(1)'}
+          >
+            <Search size={18} /> Explore Competitions
+          </button>
+        )}
 
       </div>
     </div>
