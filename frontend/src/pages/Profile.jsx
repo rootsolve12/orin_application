@@ -224,7 +224,6 @@ export default function Profile() {
             { label: 'Events Joined', value: registrations.length, icon: <Activity color="#8B5CF6" /> },
             { label: 'Active Regs', value: registrations.length, icon: <PlayCircle color="#10B981" /> },
             { label: 'Certificates', value: certificates.length, icon: <Award color="#F59E0B" /> },
-            { label: 'Communities', value: profileData.communities?.length || 0, icon: <Users color="#3B82F6" /> },
             { label: 'Achievements', value: badges.length, icon: <Trophy color="#EF4444" /> },
             { label: 'Skills Added', value: skills.length, icon: <Zap color="#F97316" /> },
             { label: 'Profile Views', value: profileData.views || 0, icon: <Star color="#EC4899" /> }

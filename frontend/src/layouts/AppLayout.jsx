@@ -54,13 +54,11 @@ export default function AppLayout({ children }) {
   const navItems = isOrganizer ? [
     { path: '/', icon: <Home size={20} />, label: 'Dashboard' },
     { path: '/organizer', icon: <Briefcase size={20} />, label: 'Manage Events' },
-    { path: '/communities', icon: <Users size={20} />, label: 'Communities' },
     { path: '/team', icon: <Target size={20} />, label: 'Team Workspace' },
     { path: '/profile', icon: <User size={20} />, label: 'Profile' },
   ] : [
     { path: '/', icon: <Home size={20} />, label: 'Home' },
     { path: '/explore', icon: <Search size={20} />, label: 'Competitions' },
-    { path: '/communities', icon: <Users size={20} />, label: 'Community' },
     { path: '/team', icon: <Target size={20} />, label: 'Team Workspace' },
     { path: '/my-events', icon: <Calendar size={20} />, label: 'Calendar' },
     { path: '/my-registrations', icon: <Bookmark size={20} />, label: 'My Registrations' },

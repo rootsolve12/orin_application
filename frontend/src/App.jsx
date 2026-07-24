@@ -15,7 +15,6 @@ import CreateEvent from './pages/CreateEvent';
 import EventDetails from './pages/EventDetails';
 import EventTimeline from './pages/EventTimeline';
 import TeamWorkspace from './pages/TeamWorkspace';
-import Communities from './pages/Communities';
 import Support from './pages/Support';
 import CertificateVerify from './pages/CertificateVerify';
 import Settings from './pages/Settings';
@@ -56,7 +55,6 @@ export default function App() {
               <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
               <Route path="/event/:id" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />
               <Route path="/event/:id/timeline" element={<ProtectedRoute><EventTimeline /></ProtectedRoute>} />
-              <Route path="/communities" element={<ProtectedRoute><Communities /></ProtectedRoute>} />
               <Route path="/team" element={<ProtectedRoute><TeamWorkspace /></ProtectedRoute>} />
               <Route path="/my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
               <Route path="/my-registrations" element={<ProtectedRoute><MyRegistrations /></ProtectedRoute>} />
