@@ -58,6 +58,8 @@ export default function CreateEvent() {
   const [showLivePreview, setShowLivePreview] = useState(window.innerWidth > 1024);
   const [hasAppliedTemplate, setHasAppliedTemplate] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
   // Auto-upgrade user to organizer role in Firestore if they are logged in as a participant
   useEffect(() => {
     if (currentUser && userProfile && userProfile.role !== 'organizer') {
@@ -70,6 +72,7 @@ export default function CreateEvent() {
   // Layout responsiveness
   useEffect(() => {
     const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
       if (window.innerWidth <= 1024) setShowLivePreview(false);
       else setShowLivePreview(true);
     };
@@ -308,7 +311,7 @@ export default function CreateEvent() {
                 <input type="text" name="title" value={formData.title} onChange={handleChange} className="form-input" placeholder="e.g. Global AI Hackathon 2026" />
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label className="form-label">Category</label>
                   <select name="category" value={formData.category} onChange={handleChange} className="form-input">
@@ -368,7 +371,7 @@ export default function CreateEvent() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s ease-in-out' }}>
           <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={16} /> Schedule Overview</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
               <div>
                 <label className="form-label">Start Date <span style={{ color: 'red' }}>*</span></label>
                 <input type="date" name="date" value={formData.date} onChange={handleChange} className="form-input" />
@@ -405,7 +408,7 @@ export default function CreateEvent() {
               </div>
               
               {formData.mode !== 'Online' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label className="form-label">Location / City</label>
                     <input type="text" name="location" value={formData.location} onChange={handleChange} className="form-input" placeholder="e.g. Bangalore, India" />
@@ -421,7 +424,7 @@ export default function CreateEvent() {
           
           <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Users size={16} /> Capacity & Registration</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
               <div>
                 <label className="form-label">Registration Deadline</label>
                 <input type="date" name="registrationDeadline" value={formData.registrationDeadline} onChange={handleChange} className="form-input" />
@@ -451,7 +454,7 @@ export default function CreateEvent() {
                   <option>Invite Only</option>
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label className="form-label">Specific Degree (Optional)</label>
                   <input type="text" name="degreeFilter" value={formData.degreeFilter} onChange={handleChange} className="form-input" placeholder="e.g. B.Tech CS, MCA" />
@@ -484,7 +487,7 @@ export default function CreateEvent() {
               </label>
 
               {formData.isTeamEvent && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', padding: '16px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '12px', border: '1px dashed var(--primary)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', padding: '16px', background: 'rgba(123, 97, 255, 0.05)', borderRadius: '12px', border: '1px dashed var(--primary)' }}>
                   <div>
                     <label className="form-label">Min Team Size</label>
                     <input type="number" name="minTeamSize" value={formData.minTeamSize} onChange={handleChange} className="form-input" min="1" />
@@ -522,7 +525,7 @@ export default function CreateEvent() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s ease-in-out' }}>
           <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
             <h4 style={{ fontSize: '14px', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={16} /> Deliverables</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
               <div>
                 <label className="form-label">Screening / Assessment</label>
                 <select name="assessmentType" value={formData.assessmentType} onChange={handleChange} className="form-input">
@@ -603,10 +606,10 @@ export default function CreateEvent() {
         <div style={{ flex: showLivePreview ? '0 0 60%' : '1', display: 'flex', flexDirection: 'column', background: 'var(--bg-light)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', borderRight: showLivePreview ? '1px solid var(--border-light)' : 'none' }}>
           
           {/* Horizontal Stepper Component */}
-          <div style={{ background: 'white', padding: '24px 32px', borderBottom: '1px solid var(--border-light)' }}>
+          <div style={{ background: 'white', padding: isMobile ? '16px 12px' : '24px 32px', borderBottom: '1px solid var(--border-light)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '24px', left: '0', right: '0', height: '2px', background: 'var(--border-light)', zIndex: 1 }} />
-              <div style={{ position: 'absolute', top: '24px', left: '0', height: '2px', background: 'var(--primary)', zIndex: 1, width: `${(currentPhase / (PHASES.length - 1)) * 100}%`, transition: 'width 0.3s ease' }} />
+              <div style={{ position: 'absolute', top: isMobile ? '18px' : '24px', left: '0', right: '0', height: '2px', background: 'var(--border-light)', zIndex: 1 }} />
+              <div style={{ position: 'absolute', top: isMobile ? '18px' : '24px', left: '0', height: '2px', background: 'var(--primary)', zIndex: 1, width: `${(currentPhase / (PHASES.length - 1)) * 100}%`, transition: 'width 0.3s ease' }} />
               
               {PHASES.map((phase, idx) => {
                 const isActive = currentPhase === idx;
@@ -615,13 +618,13 @@ export default function CreateEvent() {
                   <button 
                     key={idx}
                     onClick={() => setCurrentPhase(idx)}
-                    style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', minWidth: '80px' }}
+                    style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', minWidth: isMobile ? 'auto' : '80px', flex: isMobile ? 1 : 'none' }}
                   >
-                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: isActive ? 'var(--primary)' : isCompleted ? '#10B981' : 'white', border: `2px solid ${isActive ? 'var(--primary)' : isCompleted ? '#10B981' : 'var(--border-light)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isActive || isCompleted ? 'white' : 'var(--muted-light)', transition: 'all 0.3s ease', boxShadow: isActive ? '0 4px 12px rgba(123, 97, 255, 0.3)' : 'none' }}>
-                      {isCompleted ? <Check size={20} strokeWidth={3} /> : <phase.icon size={20} />}
+                    <div style={{ width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px', borderRadius: '50%', background: isActive ? 'var(--primary)' : isCompleted ? '#10B981' : 'white', border: `2px solid ${isActive ? 'var(--primary)' : isCompleted ? '#10B981' : 'var(--border-light)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isActive || isCompleted ? 'white' : 'var(--muted-light)', transition: 'all 0.3s ease', boxShadow: isActive ? '0 4px 12px rgba(123, 97, 255, 0.3)' : 'none' }}>
+                      {isCompleted ? <Check size={isMobile ? 16 : 20} strokeWidth={3} /> : <phase.icon size={isMobile ? 16 : 20} />}
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontSize: '12px', fontWeight: '800', color: isActive ? 'var(--primary)' : isCompleted ? 'var(--text)' : 'var(--muted-light)', display: 'block' }}>{phase.label}</span>
+                      <span style={{ fontSize: isMobile ? '10px' : '12px', fontWeight: '800', color: isActive ? 'var(--primary)' : isCompleted ? 'var(--text)' : 'var(--muted-light)', display: isMobile && !isActive ? 'none' : 'block' }}>{phase.label}</span>
                       <span className="desktop-only" style={{ fontSize: '10px', color: 'var(--muted-light)', marginTop: '2px' }}>{phase.desc}</span>
                     </div>
                   </button>
@@ -631,7 +634,7 @@ export default function CreateEvent() {
           </div>
 
           {/* Form Scroll Area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '32px', paddingBottom: '100px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px' : '32px', paddingBottom: '100px' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
               {renderPhaseContent()}
             </div>
@@ -678,31 +681,31 @@ export default function CreateEvent() {
       </div>
 
       {/* Floating Bottom Action Bar */}
-      <div style={{ position: 'fixed', bottom: '0', left: '0', right: showLivePreview ? '40%' : '0', height: '80px', background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderTop: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', zIndex: 20 }}>
+      <div style={{ position: 'fixed', bottom: '0', left: '0', right: showLivePreview ? '40%' : '0', height: '80px', background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderTop: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 12px' : '0 32px', zIndex: 20 }}>
         <button 
           onClick={() => setCurrentPhase(Math.max(0, currentPhase - 1))} 
           disabled={currentPhase === 0}
-          style={{ background: 'var(--bg-light)', border: 'none', borderRadius: '12px', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '8px', cursor: currentPhase === 0 ? 'not-allowed' : 'pointer', fontWeight: '700', fontSize: '14px', color: currentPhase === 0 ? 'var(--muted-light)' : 'var(--text)', opacity: currentPhase === 0 ? 0.5 : 1 }}
+          style={{ background: 'var(--bg-light)', border: 'none', borderRadius: '12px', padding: isMobile ? '12px 10px' : '12px 20px', display: 'flex', alignItems: 'center', gap: '8px', cursor: currentPhase === 0 ? 'not-allowed' : 'pointer', fontWeight: '700', fontSize: '14px', color: currentPhase === 0 ? 'var(--muted-light)' : 'var(--text)', opacity: currentPhase === 0 ? 0.5 : 1 }}
         >
-          <ChevronLeft size={18} /> Back
+          <ChevronLeft size={18} /> {isMobile ? '' : 'Back'}
         </button>
         
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '8px' : '16px' }}>
           <button 
             onClick={handleSaveDraft} 
             disabled={isSaving} 
-            style={{ background: 'white', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: '12px', padding: '12px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{ background: 'white', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: '12px', padding: isMobile ? '12px 12px' : '12px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Save size={18} /> {isSaving ? 'Saving...' : 'Save Draft'}
+            <Save size={18} /> {isSaving ? 'Saving...' : (isMobile ? 'Draft' : 'Save Draft')}
           </button>
           
           {currentPhase < PHASES.length - 1 ? (
             <button 
               onClick={() => setCurrentPhase(currentPhase + 1)} 
               className="btn-primary" 
-              style={{ padding: '12px 24px', fontSize: '14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}
+              style={{ padding: isMobile ? '12px 16px' : '12px 24px', fontSize: '14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              Continue <ChevronRight size={18} />
+              {isMobile ? 'Next' : 'Continue'} <ChevronRight size={18} />
             </button>
           ) : (
             <button 

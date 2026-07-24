@@ -44,6 +44,14 @@ const FAQ_LIST = [
 export default function Support() {
   const { currentUser, userProfile } = useAuth();
   
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // FAQ accordion state
   const [openFaq, setOpenFaq] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,7 +112,7 @@ export default function Support() {
         <p className="text-muted" style={{ marginTop: '8px' }}>Search guides, browse FAQs, or submit support tickets directly to our dev team.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: isMobile ? '24px' : '32px' }}>
         
         {/* Left Column: FAQs Accordion */}
         <div>

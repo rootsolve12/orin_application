@@ -123,6 +123,14 @@ export default function Onboarding() {
   const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState(''); // '', 'checking', 'available', 'taken', 'invalid'
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -235,7 +243,7 @@ export default function Onboarding() {
     }}>
       <div style={{
         width: '100%', maxWidth: '540px', background: 'white',
-        borderRadius: '24px', padding: '40px',
+        borderRadius: '24px', padding: isMobile ? '24px 16px' : '40px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
         position: 'relative', overflow: 'hidden'
       }}>
@@ -259,7 +267,7 @@ export default function Onboarding() {
             </div>
             <p style={{ color: '#6C757D', marginBottom: '32px' }}>Let's start with the basics. How should people know you?</p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
               <div>
                 <label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label>
                 <input 

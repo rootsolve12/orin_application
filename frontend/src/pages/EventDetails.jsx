@@ -28,6 +28,14 @@ export default function EventDetails() {
   const [newTeamName, setNewTeamName] = useState('');
   const [isTeamingAction, setIsTeamingAction] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchEventData = async () => {
       try {
@@ -160,7 +168,7 @@ export default function EventDetails() {
       </div>
 
       {/* Two Column Layout Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '48px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gap: isMobile ? '32px' : '48px', alignItems: 'start' }}>
         
         {/* LEFT COLUMN: Main Content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', minWidth: 0 }}>
@@ -176,7 +184,7 @@ export default function EventDetails() {
               </span>
             </div>
             
-            <h1 style={{ fontSize: '48px', fontWeight: '800', color: 'var(--text-light)', letterSpacing: '-1px', marginBottom: '16px', lineHeight: '1.1' }}>
+            <h1 style={{ fontSize: isMobile ? '28px' : '48px', fontWeight: '800', color: 'var(--text-light)', letterSpacing: '-1px', marginBottom: '16px', lineHeight: '1.1' }}>
               {title}
             </h1>
             

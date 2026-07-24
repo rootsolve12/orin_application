@@ -42,6 +42,14 @@ export default function EventTimeline() {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Assessment Workspace States
   const [showWorkspace, setShowWorkspace] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
@@ -321,7 +329,7 @@ export default function EventTimeline() {
       </div>
 
       {/* Grid: Timeline Left, Context Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: isMobile ? '24px' : '32px' }}>
         
         {/* Left Column: Timeline Stepper */}
         <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border-light)', padding: '32px' }}>
