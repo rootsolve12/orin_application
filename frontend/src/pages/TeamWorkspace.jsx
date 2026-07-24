@@ -180,22 +180,52 @@ export default function TeamWorkspace() {
   const handleVaultUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !team?.id) return;
-    setUploadProgress(0);
-    try {
-      const downloadUrl = await uploadTeamFile(team.id, file, (progress) => {
-        setUploadProgress(Math.round(progress));
-      });
-      const fileData = {
-        name: file.name, url: downloadUrl, size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
-        uploaderName: userProfile.displayName || currentUser?.displayName || 'Team Member', uploadedAt: new Date().toISOString()
-      };
-      await addTeamVaultFile(team.id, fileData);
+
+    // To bypass the paid Firebase Storage plan, files are stored directly in Firestore as Base64 strings.
+    // Firestore documents are limited to 1MB.
+    if (file.size > 1024 * 1024) {
+      alert("To keep your database hosting completely free, files are synced directly to Firestore. The maximum file size is limited to 1MB. Please upload a smaller file.");
+      return;
+    }
+
+    setUploadProgress(20);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      try {
+        setUploadProgress(70);
+        const downloadUrl = reader.result;
+        const fileData = {
+          name: file.name, 
+          url: downloadUrl, 
+          size: (file.size / 1024).toFixed(1) + " KB",
+          uploaderName: userProfile.displayName || currentUser?.displayName || 'Team Member', 
+          uploadedAt: new Date().toISOString()
+        };
+        await addTeamVaultFile(team.id, fileData);
+        setUploadProgress(null);
+        alert('File uploaded to team vault successfully!');
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save file.');
+        setUploadProgress(null);
+      }
+    };
+    reader.onerror = () => {
+      alert('Failed to read file.');
       setUploadProgress(null);
-      alert('File uploaded to team vault!');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to upload file.');
-      setUploadProgress(null);
+    };
+  };
+
+  const handleDownloadFile = (e, file) => {
+    if (file.url.startsWith('data:')) {
+      e.preventDefault();
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -664,7 +694,7 @@ export default function TeamWorkspace() {
                     <label style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                       <UploadCloud size={28} color="var(--primary)" />
                       <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-light)' }}>Drop files or Browse</span>
-                      <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>Max file size 50MB</span>
+                      <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>Max file size 1MB (Free Plan)</span>
                       <input type="file" onChange={handleVaultUpload} style={{ display: 'none' }} />
                     </label>
                   )}
@@ -676,7 +706,7 @@ export default function TeamWorkspace() {
                     return (
                       <div key={idx} style={{ padding: '12px', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.01)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                          <a href={file.url} target="_blank" rel="noreferrer" style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', wordBreak: 'break-all', flex: 1 }}>
+                          <a href={file.url} onClick={(e) => handleDownloadFile(e, file)} target="_blank" rel="noreferrer" style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', wordBreak: 'break-all', flex: 1 }}>
                             <FileText size={14} style={{ flexShrink: 0 }} /> {file.name}
                           </a>
                           {isLeader && (
