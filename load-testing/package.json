@@ -1,0 +1,13 @@
+{
+  "name": "orin-load-testing-suite",
+  "version": "1.0.0",
+  "description": "Baseline/Load testing suite for Orin",
+  "main": "run-load-test.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node run-load-test.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}
