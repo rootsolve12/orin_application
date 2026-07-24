@@ -49,6 +49,52 @@ export default function RegistrationModal({ event, onClose, onSuccess }) {
 
   if (!profile) return null;
 
+  const isEligible =
+    event.eligibility !== 'In-Campus (Restricted to Hosting College)' ||
+    !event.hostingCollege ||
+    (profile.institution && profile.institution.trim().toLowerCase() === event.hostingCollege.trim().toLowerCase());
+
+  if (!isEligible) {
+    return (
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+        padding: '24px'
+      }}>
+        <div style={{
+          background: 'var(--surface)', borderRadius: '24px',
+          width: '100%', maxWidth: '500px', padding: '36px',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.2)', border: '1px solid var(--border-light)',
+          textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px'
+        }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '16px', borderRadius: '50%', display: 'flex' }}>
+            <AlertCircle size={40} color="#EF4444" />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '8px' }}>Campus Restriction</h2>
+            <p style={{ fontSize: '14px', color: 'var(--muted-light)', lineHeight: '1.5', margin: '0 0 12px 0' }}>
+              This is an <strong>In-Campus</strong> event restricted exclusively to students of:
+            </p>
+            <p style={{ fontSize: '15px', fontWeight: '700', color: 'var(--primary)', margin: '10px 0 16px' }}>
+              {event.hostingCollege}
+            </p>
+            <p style={{ fontSize: '13px', color: 'var(--muted-light)', borderTop: '1px solid var(--border-light)', paddingTop: '16px', margin: 0 }}>
+              Your profile institution is: <strong>{profile.institution || 'Not specified'}</strong>
+            </p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="btn-primary" 
+            style={{ width: '100%', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            Close & Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,

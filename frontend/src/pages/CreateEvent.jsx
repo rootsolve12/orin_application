@@ -179,7 +179,11 @@ export default function CreateEvent() {
     if (!formData.title) return alert("Event Title is required to save a draft!");
     setIsSaving(true);
     try {
-      await createEvent(currentUser.uid, { ...formData, status: 'Draft' });
+      await createEvent(currentUser.uid, { 
+        ...formData, 
+        hostingCollege: userProfile?.institution || '',
+        status: 'Draft' 
+      });
       navigate('/organizer');
     } catch (err) {
       console.error(err);
@@ -194,7 +198,11 @@ export default function CreateEvent() {
     if (!formData.date) return alert("Start Date is required!");
     setIsSaving(true);
     try {
-      await createEvent(currentUser.uid, { ...formData, status: 'Published' });
+      await createEvent(currentUser.uid, { 
+        ...formData, 
+        hostingCollege: userProfile?.institution || '',
+        status: 'Published' 
+      });
       navigate('/organizer');
     } catch (err) {
       console.error(err);
@@ -365,6 +373,7 @@ export default function CreateEvent() {
                 <label className="form-label">Who can apply?</label>
                 <select name="eligibility" value={formData.eligibility} onChange={handleChange} className="form-input">
                   <option>Open to All</option>
+                  <option>In-Campus (Restricted to Hosting College)</option>
                   <option>University Students Only</option>
                   <option>Working Professionals Only</option>
                   <option>Women Only</option>

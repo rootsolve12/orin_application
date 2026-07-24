@@ -119,7 +119,7 @@ export const registerForEvent = async (eventId, userId, formData = {}) => {
   await setDoc(regRef, {
     userId,
     eventId,
-    status: 'Pending',
+    status: 'Approved',
     formData,
     registeredAt: serverTimestamp(),
   });
