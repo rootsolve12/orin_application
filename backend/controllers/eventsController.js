@@ -1,13 +1,11 @@
 const emailService = require('../services/emailService');
+const { sanitize, sanitizeObject, isValidUrl, isValidISODate, isInternalUrl, isPositiveInt, isValidScore, generateId } = require('../middleware/validate');
+const { logSecurityEvent, EVENT_TYPES } = require('../middleware/logger');
 
 const isOwner = (req, targetUserId) => {
   if (!req.user) return false;
-  if (req.user.id === 'user_123') {
-    return ['user_123', 'u1', 'p1'].includes(targetUserId);
-  }
   return req.user.id === targetUserId;
 };
-
 
 const DEFAULT_ROUNDS = [
   'Registration', 'Screening', 'Assessment', 'Submission', 
@@ -28,7 +26,7 @@ let eventsDb = [
     isRecommended: true,
     image: 'https://via.placeholder.com/600x300/7B61FF/FFFFFF?text=Global+Hack+2026',
     organizerQuestions: ['What is your T-Shirt size?', 'Any dietary restrictions?'],
-    organizerId: 'other_user',
+    organizerId: 'user_002',
     status: 'Published',
     currentRoundIndex: 0,
     rounds: DEFAULT_ROUNDS
@@ -46,7 +44,7 @@ let eventsDb = [
     isRecommended: true,
     image: 'https://via.placeholder.com/600x300/FF6B6B/FFFFFF?text=Quantum+Computing',
     organizerQuestions: [],
-    organizerId: 'other_user',
+    organizerId: 'user_002',
     status: 'Published',
     currentRoundIndex: 0,
     rounds: DEFAULT_ROUNDS
@@ -64,7 +62,7 @@ let eventsDb = [
     isRecommended: false,
     image: 'https://via.placeholder.com/600x300/20C997/FFFFFF?text=AI+Innovation',
     organizerQuestions: ['GitHub Profile URL for team check?'],
-    organizerId: 'user_123',
+    organizerId: 'user_001',
     status: 'Published',
     currentRoundIndex: 0,
     rounds: DEFAULT_ROUNDS
@@ -82,9 +80,9 @@ let eventsDb = [
     isRecommended: true,
     image: 'https://via.placeholder.com/600x300/FD7E14/FFFFFF?text=AlgoRhythm',
     organizerQuestions: ['Preferred programming language?'],
-    organizerId: 'user_123',
+    organizerId: 'user_001',
     status: 'Published',
-    currentRoundIndex: 2, // e.g. Currently in Assessment Round
+    currentRoundIndex: 2,
     rounds: DEFAULT_ROUNDS
   }
 ];
@@ -92,19 +90,45 @@ let eventsDb = [
 let registrationsDb = [];
 let submissionsDb = [];
 
+// ==========================================
+// PUBLIC ENDPOINTS
+// ==========================================
 exports.getEvents = (req, res) => {
-  // Only return published events for the explore feed
   const published = eventsDb.filter(e => e.status !== 'Draft' && e.status !== 'Archived');
-  res.json({ success: true, data: published });
+  
+  // Pagination
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  const startIdx = (page - 1) * limit;
+  const paginated = published.slice(startIdx, startIdx + limit);
+
+  // Data minimization — don't expose organizerId in public listing
+  const sanitized = paginated.map(({ organizerId, ...rest }) => rest);
+  
+  res.json({ 
+    success: true, 
+    data: sanitized,
+    pagination: {
+      page,
+      limit,
+      total: published.length,
+      totalPages: Math.ceil(published.length / limit)
+    }
+  });
 };
 
 exports.getEventById = (req, res) => {
   const event = eventsDb.find(e => e.id === req.params.id);
   if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
-  res.json({ success: true, data: event });
+  
+  // Data minimization for public view
+  const { organizerId, ...publicEvent } = event;
+  res.json({ success: true, data: publicEvent });
 };
 
-// Organizer Endpoints
+// ==========================================
+// ORGANIZER ENDPOINTS
+// ==========================================
 exports.getOrganizerStats = (req, res) => {
   const userId = req.user.id;
   const myEvents = eventsDb.filter(e => e.organizerId === userId);
@@ -118,8 +142,8 @@ exports.getOrganizerStats = (req, res) => {
       totalEvents: myEvents.length,
       activeEvents: myEvents.filter(e => e.status === 'Published').length,
       totalRegistrations: totalRegs,
-      pendingApprovals: 42, // Mocked pending
-      attendance: Math.floor(totalRegs * 0.8), // 80% attendance rate mock
+      pendingApprovals: 42,
+      attendance: Math.floor(totalRegs * 0.8),
       submissions: 156,
       certificatesGenerated: 89,
       eventsList: myEvents
@@ -129,20 +153,74 @@ exports.getOrganizerStats = (req, res) => {
 
 exports.createEvent = (req, res) => {
   const payload = req.body;
+
+  // ==========================================
+  // INPUT VALIDATION
+  // ==========================================
+  if (!payload.title || typeof payload.title !== 'string' || payload.title.trim() === '') {
+    return res.status(400).json({ success: false, message: 'Event title is required' });
+  }
+
+  if (payload.title.length > 200) {
+    return res.status(400).json({ success: false, message: 'Title is too long (max 200 chars)' });
+  }
+
+  if (payload.date && !isValidISODate(payload.date)) {
+    return res.status(400).json({ success: false, message: 'Invalid date format. Use ISO 8601.' });
+  }
+
+  if (payload.maxCapacity !== undefined) {
+    if (!isPositiveInt(payload.maxCapacity)) {
+      return res.status(400).json({ success: false, message: 'maxCapacity must be a positive integer' });
+    }
+  }
+
+  if (payload.image && !isValidUrl(payload.image)) {
+    return res.status(400).json({ success: false, message: 'Invalid image URL' });
+  }
+
+  if (payload.image && isInternalUrl(payload.image)) {
+    return res.status(400).json({ success: false, message: 'Internal URLs are not allowed' });
+  }
+
+  // Only allow valid statuses
+  const validStatuses = ['Draft', 'Published'];
+  const status = validStatuses.includes(payload.status) ? payload.status : 'Draft';
+
+  // Sanitize all string inputs and build event with WHITELISTED fields only
   const newEvent = {
-    id: `ev_${Date.now()}`,
-    ...payload,
-    organizerId: req.user.id,
-    registeredCount: 0,
+    id: generateId('ev_'),
+    title: sanitize(payload.title),
+    category: sanitize(payload.category || 'General'),
+    date: payload.date || new Date().toISOString(),
+    location: sanitize(payload.location || 'TBD'),
+    mode: ['Online', 'Offline', 'Hybrid'].includes(payload.mode) ? payload.mode : 'Online',
+    registeredCount: 0, // Always starts at 0, cannot be injected
+    maxCapacity: payload.maxCapacity || 100,
+    isTrending: false,
+    isRecommended: false,
     image: payload.image || 'https://via.placeholder.com/600x300/7B61FF/FFFFFF?text=New+Event',
+    organizerQuestions: Array.isArray(payload.organizerQuestions)
+      ? payload.organizerQuestions.map(q => sanitize(String(q))).slice(0, 20)
+      : [],
+    organizerId: req.user.id, // Always from authenticated user, cannot be injected
+    status,
     currentRoundIndex: 0,
     rounds: DEFAULT_ROUNDS
   };
+
   eventsDb.push(newEvent);
+
+  logSecurityEvent(EVENT_TYPES.ADMIN_ACTION, {
+    userId: req.user.id,
+    resource: `Event ${newEvent.id}`,
+    message: `Event created: "${newEvent.title}" with status ${status}`,
+    severity: 'INFO'
+  });
   
   res.json({
     success: true,
-    message: payload.status === 'Draft' ? 'Draft Saved Successfully' : 'Event Published!',
+    message: status === 'Draft' ? 'Draft Saved Successfully' : 'Event Published!',
     data: newEvent
   });
 };
@@ -152,60 +230,104 @@ exports.advanceRound = (req, res) => {
   const event = eventsDb.find(e => e.id === req.params.id);
   if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
   
-  // Verify organizer role instead of strict organizer ID match
+  // Verify organizer role
   if (req.user.role !== 'organizer' && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.FORBIDDEN_ACCESS, {
+      userId: req.user.id,
+      resource: `Event ${event.id}`,
+      message: 'Attempted to advance round without permission',
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 
   if (event.currentRoundIndex < event.rounds.length - 1) {
     event.currentRoundIndex += 1;
+
+    logSecurityEvent(EVENT_TYPES.ADMIN_ACTION, {
+      userId: req.user.id,
+      resource: `Event ${event.id}`,
+      message: `Round advanced to ${event.rounds[event.currentRoundIndex]}`,
+      severity: 'INFO'
+    });
+
     res.json({ success: true, message: `Advanced to ${event.rounds[event.currentRoundIndex]}` });
   } else {
     res.json({ success: false, message: 'Event is already in the final round' });
   }
 };
 
-// Intelligent Registration System
+// ==========================================
+// REGISTRATION
+// ==========================================
 exports.registerForEvent = (req, res) => {
   const { eventId } = req.params;
   const { userId, customAnswers, autoFilledProfile } = req.body;
 
+  // Input validation
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({ success: false, message: 'userId is required' });
+  }
+
   // Verify ownership to prevent IDOR
   if (!isOwner(req, userId) && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.IDOR_ATTEMPT, {
+      ip: req.ip,
+      userId: req.user.id,
+      resource: `Registration for event ${eventId}`,
+      message: `Attempted to register as userId: ${userId}`,
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 
   const event = eventsDb.find(e => e.id === eventId);
   if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
 
+  // Duplicate registration check
+  const existingReg = registrationsDb.find(r => r.eventId === eventId && r.userId === userId);
+  if (existingReg) {
+    return res.status(409).json({ success: false, message: 'Already registered for this event' });
+  }
+
   // Determine status (Waitlisted if full)
   let status = 'Approved';
   if (event.registeredCount >= event.maxCapacity) {
     status = 'Waitlisted';
   } else {
-    event.registeredCount += 1; // Increment count
+    event.registeredCount += 1;
   }
 
+  // Safely extract auto-filled profile with defaults
+  const profile = autoFilledProfile || {};
   const registrationRecord = {
-    id: `reg_${Date.now()}`,
+    id: generateId('reg_'),
     eventId,
     userId,
     status,
     timestamp: new Date().toISOString(),
-    customAnswers,
-    // Store snapshot of the auto-filled profile for the organizer
+    customAnswers: Array.isArray(customAnswers)
+      ? customAnswers.map(a => sanitize(String(a)))
+      : [],
     participantSnapshot: {
-      name: autoFilledProfile.name,
-      institution: autoFilledProfile.institution,
-      department: autoFilledProfile.department,
-      academicYear: autoFilledProfile.academicYear,
-      skills: autoFilledProfile.skills,
-      resumeUrl: autoFilledProfile.resumeUrl,
-      links: autoFilledProfile.links
+      name: sanitize(profile.name || ''),
+      institution: sanitize(profile.institution || ''),
+      department: sanitize(profile.department || ''),
+      academicYear: sanitize(profile.academicYear || ''),
+      skills: Array.isArray(profile.skills) ? profile.skills.map(s => sanitize(String(s))) : [],
+      resumeUrl: profile.resumeUrl && isValidUrl(profile.resumeUrl) ? profile.resumeUrl : null,
+      links: sanitizeObject(profile.links || {})
     }
   };
 
   registrationsDb.push(registrationRecord);
+
+  logSecurityEvent(EVENT_TYPES.REGISTRATION, {
+    userId,
+    resource: `Event ${eventId}`,
+    message: `Registration ${status}`,
+    severity: 'INFO'
+  });
 
   // Trigger Registration Email Notification
   emailService.sendRegistrationConfirmation('participant@example.com', event.title);
@@ -222,18 +344,34 @@ exports.getUserRegistrations = (req, res) => {
 
   // Verify ownership to prevent IDOR
   if (!isOwner(req, userId) && req.user.role !== 'organizer' && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.IDOR_ATTEMPT, {
+      userId: req.user.id,
+      resource: `Registrations for user ${userId}`,
+      message: 'IDOR attempt on user registrations',
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 
   const userRegs = registrationsDb.filter(r => r.userId === userId);
   
+  // Pagination
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  const startIdx = (page - 1) * limit;
+  const paginated = userRegs.slice(startIdx, startIdx + limit);
+
   // Attach event details
-  const populated = userRegs.map(reg => {
+  const populated = paginated.map(reg => {
     const eventDetails = eventsDb.find(e => e.id === reg.eventId);
     return { ...reg, event: eventDetails };
   });
 
-  res.json({ success: true, data: populated });
+  res.json({ 
+    success: true, 
+    data: populated,
+    pagination: { page, limit, total: userRegs.length, totalPages: Math.ceil(userRegs.length / limit) }
+  });
 };
 
 // ==========================================
@@ -244,8 +382,22 @@ exports.submitAssessment = (req, res) => {
   const { id } = req.params;
   const { userId, score } = req.body;
 
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({ success: false, message: 'userId is required' });
+  }
+
+  if (score === undefined || score === null || !isValidScore(score)) {
+    return res.status(400).json({ success: false, message: 'Score must be a number between 0 and 100' });
+  }
+
   // Verify ownership to prevent IDOR
   if (!isOwner(req, userId) && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.IDOR_ATTEMPT, {
+      userId: req.user.id,
+      resource: `Assessment for event ${id}`,
+      message: `IDOR attempt: tried to submit as ${userId}`,
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 
@@ -256,17 +408,50 @@ exports.submitProject = (req, res) => {
   const { id } = req.params;
   const { userId, links, isFinalLock } = req.body;
 
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({ success: false, message: 'userId is required' });
+  }
+
   // Verify ownership to prevent IDOR
   if (!isOwner(req, userId) && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.IDOR_ATTEMPT, {
+      userId: req.user.id,
+      resource: `Project submission for event ${id}`,
+      message: `IDOR attempt: tried to submit as ${userId}`,
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
+
+  // Check for locked submission
+  const existingSub = submissionsDb.find(s => s.eventId === id && s.userId === userId && s.isFinalLock);
+  if (existingSub) {
+    return res.status(400).json({ success: false, message: 'Submission is already locked and cannot be modified' });
+  }
+
+  // Validate and sanitize links
+  const validatedLinks = [];
+  if (Array.isArray(links)) {
+    for (const link of links.slice(0, 10)) {
+      if (!link.url || !isValidUrl(link.url)) {
+        return res.status(400).json({ success: false, message: `Invalid URL: ${link.url || 'empty'}` });
+      }
+      if (isInternalUrl(link.url)) {
+        return res.status(400).json({ success: false, message: 'Internal/private URLs are not allowed' });
+      }
+      validatedLinks.push({
+        type: sanitize(String(link.type || 'Other')),
+        url: link.url
+      });
+    }
   }
   
   const newSubmission = {
-    id: `sub_${Date.now()}`,
+    id: generateId('sub_'),
     eventId: id,
     userId,
-    links, // array of { type: 'GitHub', url: '...' }
-    isFinalLock,
+    links: validatedLinks,
+    isFinalLock: !!isFinalLock,
     version: 1,
     status: 'Pending Review',
     timestamp: new Date().toISOString()
@@ -286,13 +471,30 @@ exports.getEventSubmissions = (req, res) => {
   const event = eventsDb.find(e => e.id === id);
   if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
 
-  // Verify organizer role instead of strict organizer ID match
+  // Verify organizer role
   if (req.user.role !== 'organizer' && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.FORBIDDEN_ACCESS, {
+      userId: req.user.id,
+      resource: `Submissions for event ${id}`,
+      message: 'Unauthorized access to submissions',
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 
   const eventSubs = submissionsDb.filter(s => s.eventId === id);
-  res.json({ success: true, data: eventSubs });
+
+  // Pagination
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  const startIdx = (page - 1) * limit;
+  const paginated = eventSubs.slice(startIdx, startIdx + limit);
+
+  res.json({ 
+    success: true, 
+    data: paginated,
+    pagination: { page, limit, total: eventSubs.length, totalPages: Math.ceil(eventSubs.length / limit) }
+  });
 };
 
 exports.evaluateSubmission = (req, res) => {
@@ -302,34 +504,37 @@ exports.evaluateSubmission = (req, res) => {
   const event = eventsDb.find(e => e.id === id);
   if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
 
-  // Verify organizer role instead of strict organizer ID match
+  // Verify organizer role
   if (req.user.role !== 'organizer' && req.user.role !== 'admin') {
+    logSecurityEvent(EVENT_TYPES.FORBIDDEN_ACCESS, {
+      userId: req.user.id,
+      resource: `Evaluation for submission ${submissionId}`,
+      message: 'Unauthorized evaluation attempt',
+      severity: 'HIGH'
+    });
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
 
   let submission = submissionsDb.find(s => s.id === submissionId);
   if (!submission) {
-    submission = {
-      id: submissionId,
-      eventId: id,
-      userId: 'p1',
-      links: [],
-      isFinalLock: true,
-      status: 'Pending Review',
-      timestamp: new Date().toISOString()
-    };
-    submissionsDb.push(submission);
+    return res.status(404).json({ success: false, message: 'Submission not found' });
   }
   
   submission.status = isShortlisted ? 'Shortlisted' : 'Evaluated';
   submission.rubricScores = rubricScores;
-  submission.feedback = feedback;
+  submission.feedback = sanitize(String(feedback || ''));
+
+  logSecurityEvent(EVENT_TYPES.ADMIN_ACTION, {
+    userId: req.user.id,
+    resource: `Submission ${submissionId}`,
+    message: `Submission evaluated: ${submission.status}`,
+    severity: 'INFO'
+  });
   
   // Trigger Qualification Alert if shortlisted
   if (isShortlisted) {
-    emailService.sendRegistrationConfirmation('participant@example.com', event.title);
+    emailService.sendQualificationAlert('participant@example.com', event.title);
   }
   
   res.json({ success: true, message: 'Evaluation Saved Successfully', data: submission });
 };
-

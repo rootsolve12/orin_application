@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
+const { htmlEncode } = require('../middleware/validate');
 
 // Configure Nodemailer with Gmail
-// To use this in production, replace with actual App Password from Google Account
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -10,13 +10,38 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Email rate limiting (max 10 emails per minute)
+const emailRateStore = new Map();
+const EMAIL_RATE_LIMIT = 10;
+const EMAIL_RATE_WINDOW = 60 * 1000; // 1 minute
+
+const checkEmailRate = (to) => {
+  const now = Date.now();
+  if (!emailRateStore.has(to)) {
+    emailRateStore.set(to, []);
+  }
+  const timestamps = emailRateStore.get(to).filter(t => now - t < EMAIL_RATE_WINDOW);
+  emailRateStore.set(to, timestamps);
+  
+  if (timestamps.length >= EMAIL_RATE_LIMIT) {
+    return false; // Rate limited
+  }
+  timestamps.push(now);
+  return true;
+};
+
 /**
- * Send an email using Gmail
- * (In this dev environment, it will simulate a success log if credentials fail)
+ * Send an email using Gmail.
+ * All user-supplied values are HTML-encoded before insertion into templates.
  */
 const sendEmail = async (to, subject, htmlContent) => {
+  // Check email rate limit
+  if (!checkEmailRate(to)) {
+    console.warn(`⚠️ [Email Rate Limit] Too many emails to ${to}`);
+    return false;
+  }
+
   try {
-    // Attempt to send real email using configured Nodemailer transporter
     const info = await transporter.sendMail({
       from: `"Orin Platform" <${process.env.GMAIL_USER || 'info@example.com'}>`,
       to,
@@ -41,10 +66,12 @@ const sendEmail = async (to, subject, htmlContent) => {
 };
 
 exports.sendRegistrationConfirmation = async (userEmail, eventTitle) => {
-  const subject = `Registration Confirmed: ${eventTitle}`;
+  // HTML-encode user-supplied event title to prevent template injection
+  const safeTitle = htmlEncode(eventTitle);
+  const subject = `Registration Confirmed: ${safeTitle}`;
   const html = `
     <h2>You are in! 🎉</h2>
-    <p>Your registration for <strong>${eventTitle}</strong> has been successfully confirmed.</p>
+    <p>Your registration for <strong>${safeTitle}</strong> has been successfully confirmed.</p>
     <p>Please check your Orin dashboard for upcoming deadlines and assessment details.</p>
     <br/>
     <p>Best regards,</p>
@@ -54,10 +81,11 @@ exports.sendRegistrationConfirmation = async (userEmail, eventTitle) => {
 };
 
 exports.sendQualificationAlert = async (userEmail, eventTitle) => {
-  const subject = `Action Required: You've been Shortlisted for ${eventTitle}!`;
+  const safeTitle = htmlEncode(eventTitle);
+  const subject = `Action Required: You've been Shortlisted for ${safeTitle}!`;
   const html = `
     <h2>Congratulations! 🌟</h2>
-    <p>You have been shortlisted for the next round of <strong>${eventTitle}</strong> based on your recent evaluation.</p>
+    <p>You have been shortlisted for the next round of <strong>${safeTitle}</strong> based on your recent evaluation.</p>
     <p>Log in to your Orin account immediately to see your updated Event Lifecycle and prepare for the next phase.</p>
     <br/>
     <p>Best regards,</p>
@@ -67,11 +95,13 @@ exports.sendQualificationAlert = async (userEmail, eventTitle) => {
 };
 
 exports.sendCertificateGenerated = async (userEmail, eventTitle, certificateId) => {
-  const subject = `Your Certificate for ${eventTitle} is Ready`;
+  const safeTitle = htmlEncode(eventTitle);
+  const safeCertId = htmlEncode(certificateId);
+  const subject = `Your Certificate for ${safeTitle} is Ready`;
   const html = `
     <h2>Great job! 🎓</h2>
-    <p>Your certificate of participation for <strong>${eventTitle}</strong> has been generated.</p>
-    <p>Your Unique Certificate ID: <strong>${certificateId}</strong></p>
+    <p>Your certificate of participation for <strong>${safeTitle}</strong> has been generated.</p>
+    <p>Your Unique Certificate ID: <strong>${safeCertId}</strong></p>
     <p>You can view, download, and share your verified certificate directly from your Orin Profile.</p>
     <br/>
     <p>Best regards,</p>
@@ -81,12 +111,14 @@ exports.sendCertificateGenerated = async (userEmail, eventTitle, certificateId) 
 };
 
 exports.sendOtpVerification = async (userEmail, otp) => {
+  // HTML-encode OTP to prevent template injection
+  const safeOtp = htmlEncode(String(otp));
   const subject = `Your Orin OTP Verification Code`;
   const html = `
     <h2>Welcome to Orin! 🚀</h2>
     <p>Please use the following One-Time Password (OTP) to verify your email address:</p>
     <div style="background: #F1F3F5; padding: 16px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; text-align: center; color: #7B61FF; margin: 20px 0;">
-      ${otp}
+      ${safeOtp}
     </div>
     <p>This code is valid for 10 minutes. If you did not request this code, please ignore this email.</p>
     <br/>
@@ -95,4 +127,3 @@ exports.sendOtpVerification = async (userEmail, otp) => {
   `;
   return sendEmail(userEmail, subject, html);
 };
-
