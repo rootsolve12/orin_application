@@ -766,8 +766,6 @@ export default function TeamWorkspace() {
                 </div>
               </div>
             )}
-              </div>
-            )}
 
           </div>
         </div>
