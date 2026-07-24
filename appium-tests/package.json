@@ -1,0 +1,15 @@
+{
+  "name": "orin-appium-tests-suite",
+  "version": "1.0.0",
+  "description": "Appium E2E test suite for Orin Mobile App",
+  "main": "tests/appium-tests.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node tests/appium-tests.js"
+  },
+  "dependencies": {
+    "webdriverio": "^8.36.0",
+    "exceljs": "^4.4.0",
+    "appium": "^2.5.1"
+  }
+}
