@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { updateUserProfile } from '../firebase/firestore';
-import { MapPin, GraduationCap, Code2, Link as LinkIcon, ChevronRight, Check, Sparkles } from 'lucide-react';
+import { updateUserProfile, isUsernameUnique } from '../firebase/firestore';
+import { MapPin, GraduationCap, Code2, Link as LinkIcon, ChevronRight, Check, Sparkles, User } from 'lucide-react';
 
 const TOTAL_STEPS = 4;
 
@@ -121,10 +121,12 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [showCollegeDropdown, setShowCollegeDropdown] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState(''); // '', 'checking', 'available', 'taken', 'invalid'
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     mobile: '',
     email: currentUser?.email || '',
     location: '',
@@ -138,6 +140,25 @@ export default function Onboarding() {
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleUsernameChange = async (val) => {
+    const cleanVal = val.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+    handleChange('username', cleanVal);
+    
+    if (cleanVal.length < 3) {
+      setUsernameStatus('invalid');
+      return;
+    }
+    
+    setUsernameStatus('checking');
+    try {
+      const isUnique = await isUsernameUnique(cleanVal);
+      setUsernameStatus(isUnique ? 'available' : 'taken');
+    } catch (err) {
+      console.error(err);
+      setUsernameStatus('error');
+    }
   };
 
   const toggleSkill = (skill) => {
@@ -156,6 +177,7 @@ export default function Onboarding() {
       const payload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
+        username: formData.username.trim().toLowerCase(),
         displayName: `${formData.firstName} ${formData.lastName}`.trim(),
         mobile: formData.mobile,
         email: formData.email,
@@ -188,6 +210,8 @@ export default function Onboarding() {
     if (step === 1) {
       return formData.firstName.trim().length > 0 && 
              formData.lastName.trim().length > 0 && 
+             formData.username.trim().length >= 3 &&
+             usernameStatus === 'available' &&
              formData.mobile.trim().length === 10 && 
              formData.location.trim().length > 0;
     }
@@ -254,6 +278,23 @@ export default function Onboarding() {
                   onChange={e => handleChange('lastName', e.target.value)}
                 />
               </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={labelStyle}>Username <span style={{ color: 'red' }}>*</span></label>
+              <div style={{ position: 'relative' }}>
+                <User size={20} color="#ADB5BD" style={{ position: 'absolute', left: '16px', top: '15px' }} />
+                <input 
+                  style={{ ...inputStyle, paddingLeft: '44px' }}
+                  placeholder="unique_username"
+                  value={formData.username}
+                  onChange={e => handleUsernameChange(e.target.value)}
+                />
+              </div>
+              {usernameStatus === 'checking' && <p style={{ fontSize: '11px', color: 'var(--muted-light)', marginTop: '4px' }}>Checking availability...</p>}
+              {usernameStatus === 'available' && <p style={{ fontSize: '11px', color: '#28A745', marginTop: '4px', fontWeight: 'bold' }}>✓ Username is available!</p>}
+              {usernameStatus === 'taken' && <p style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', fontWeight: 'bold' }}>✗ This username is already taken.</p>}
+              {usernameStatus === 'invalid' && <p style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px' }}>At least 3 lowercase alphanumeric/underscore chars.</p>}
             </div>
 
             <div style={{ marginBottom: '20px' }}>

@@ -31,6 +31,30 @@ export const getUserProfile = async (uid) => {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 };
 
+/** Get all users in the system (for search indexing) */
+export const getAllUsers = async () => {
+  const snap = await getDocs(collection(db, 'users'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+};
+
+/** Check if a username is unique */
+export const isUsernameUnique = async (username) => {
+  if (!username) return false;
+  const q = query(collection(db, 'users'), where('username', '==', username.trim().toLowerCase()));
+  const snap = await getDocs(q);
+  return snap.empty;
+};
+
+/** Get user profile details by username */
+export const getUserProfileByUsername = async (username) => {
+  if (!username) return null;
+  const q = query(collection(db, 'users'), where('username', '==', username.trim().toLowerCase()));
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  const docSnap = snap.docs[0];
+  return { id: docSnap.id, ...docSnap.data() };
+};
+
 export const updateUserProfile = async (uid, data) => {
   await setDoc(doc(db, 'users', uid), {
     ...data,

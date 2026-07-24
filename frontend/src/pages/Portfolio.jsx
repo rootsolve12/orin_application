@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
   Trophy, 
   Award, 
@@ -26,7 +26,8 @@ import {
   getUserAchievements, 
   addAchievement, 
   updateAchievement, 
-  deleteAchievement 
+  deleteAchievement,
+  getUserProfileByUsername 
 } from '../firebase/firestore';
 
 const GITHUB_SVG = (
@@ -51,9 +52,11 @@ const ACHIEVEMENT_TYPES = [
 
 export default function Portfolio() {
   const navigate = useNavigate();
+  const { username } = useParams();
   const { currentUser } = useAuth();
   
   const [profileData, setProfileData] = useState(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(true);
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -72,24 +75,39 @@ export default function Portfolio() {
   const [formLink, setFormLink] = useState('');
 
   const fetchPortfolioData = async () => {
-    if (currentUser) {
-      try {
+    setLoading(true);
+    try {
+      if (username) {
+        // Query profile by username
+        const profile = await getUserProfileByUsername(username);
+        if (profile) {
+          const achs = await getUserAchievements(profile.id);
+          setProfileData(profile);
+          setAchievements(achs);
+          setIsOwnProfile(currentUser && currentUser.uid === profile.id);
+        } else {
+          setProfileData(null);
+        }
+      } else if (currentUser) {
+        // Default to logged-in user
         const [profile, achs] = await Promise.all([
           getUserProfile(currentUser.uid),
           getUserAchievements(currentUser.uid)
         ]);
         setProfileData(profile);
         setAchievements(achs);
-      } catch (err) {
-        console.error("Error fetching portfolio details:", err);
+        setIsOwnProfile(true);
       }
+    } catch (err) {
+      console.error("Error fetching portfolio details:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchPortfolioData();
-  }, [currentUser]);
+  }, [currentUser, username]);
 
   const openAddModal = () => {
     setModalType('add');
@@ -195,16 +213,35 @@ export default function Portfolio() {
     );
   }
 
+  if (!profileData && username) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', gap: '20px', padding: '24px' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '16px', borderRadius: '50%', display: 'inline-flex' }}>
+          <AlertCircle size={48} color="#EF4444" />
+        </div>
+        <div>
+          <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-light)', marginBottom: '8px' }}>User Not Found</h2>
+          <p style={{ color: 'var(--muted-light)', fontSize: '14px', maxWidth: '360px', lineHeight: '1.5', margin: '0 0 12px 0' }}>
+            We couldn't find any profile associated with the username: <strong>@{username}</strong>. Please check the spelling or search for another user.
+          </p>
+        </div>
+        <button onClick={() => navigate('/')} className="btn-primary" style={{ padding: '10px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
+          Go to Home Page
+        </button>
+      </div>
+    );
+  }
+
   const user = {
-    name: profileData?.displayName || currentUser?.displayName || 'quizhb45',
-    email: currentUser?.email || 'quizhb45@example.com',
-    institution: profileData?.institution || 'Simats University',
-    department: profileData?.department || 'Computer Science Engineering',
-    degreeProgram: profileData?.degreeProgram || 'B.E. / B.Tech',
-    academicYear: profileData?.academicYear || '4th Year',
+    name: profileData?.displayName || (isOwnProfile ? currentUser?.displayName : '') || 'User',
+    email: profileData?.email || (isOwnProfile ? currentUser?.email : '') || 'Contact via socials',
+    institution: profileData?.institution || 'Academic Institution',
+    department: profileData?.department || 'Engineering & Technology',
+    degreeProgram: profileData?.degreeProgram || 'Undergraduate',
+    academicYear: profileData?.academicYear || 'Student',
     skills: profileData?.skills || [],
     interests: profileData?.interests || [],
-    photoURL: profileData?.photoURL || currentUser?.photoURL,
+    photoURL: profileData?.photoURL || (isOwnProfile ? currentUser?.photoURL : null),
     resumeUrl: profileData?.resumeUrl,
     github: profileData?.github,
     linkedin: profileData?.linkedin,
@@ -213,19 +250,19 @@ export default function Portfolio() {
     portfolioUrl: profileData?.portfolioUrl,
   };
 
-  const initial = user.name ? user.name.charAt(0).toUpperCase() : 'Q';
+  const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px 80px', color: '#1A1A1A' }}>
       
       {/* Back button */}
       <button 
-        onClick={() => navigate('/profile')} 
+        onClick={() => navigate(isOwnProfile ? '/profile' : '/')} 
         style={{ background: 'none', border: 'none', color: '#6C757D', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: '500', marginBottom: '28px', transition: 'color 0.2s' }}
         onMouseEnter={(e) => e.target.style.color = 'var(--primary)'}
         onMouseLeave={(e) => e.target.style.color = '#6C757D'}
       >
-        <ArrowLeft size={18} /> Back to Profile
+        <ArrowLeft size={18} /> {isOwnProfile ? 'Back to Profile' : 'Back to Home'}
       </button>
 
       {/* Floating Alert Messages */}
@@ -368,34 +405,36 @@ export default function Portfolio() {
                 <p style={{ color: '#6C757D', fontSize: '14px', marginTop: '4px' }}>Showcase your hackathons, projects, coding wins, and credentials.</p>
               </div>
 
-              <button 
-                onClick={openAddModal}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px', 
-                  padding: '12px 20px', 
-                  background: 'linear-gradient(135deg, #7B61FF, #9D88FF)', 
-                  border: 'none', 
-                  color: 'white', 
-                  fontWeight: '700', 
-                  borderRadius: '12px', 
-                  cursor: 'pointer', 
-                  boxShadow: '0 4px 16px rgba(123,97,255,0.25)', 
-                  transition: 'all 0.2s',
-                  fontSize: '14px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(123,97,255,0.35)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(123,97,255,0.25)';
-                }}
-              >
-                <Plus size={18} /> Post Achievement
-              </button>
+              {isOwnProfile && (
+                <button 
+                  onClick={openAddModal}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    padding: '12px 20px', 
+                    background: 'linear-gradient(135deg, var(--primary), var(--secondary))', 
+                    border: 'none', 
+                    color: 'white', 
+                    fontWeight: '700', 
+                    borderRadius: '12px', 
+                    cursor: 'pointer', 
+                    boxShadow: '0 4px 16px rgba(123,97,255,0.25)', 
+                    transition: 'all 0.2s',
+                    fontSize: '14px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(123,97,255,0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(123,97,255,0.25)';
+                  }}
+                >
+                  <Plus size={18} /> Post Achievement
+                </button>
+              )}
             </div>
 
             {/* Achievements List */}
@@ -428,26 +467,28 @@ export default function Portfolio() {
                       }}
                     >
                       {/* Action buttons (Absolute positioned top right) */}
-                      <div style={{ position: 'absolute', top: '24px', right: '24px', display: 'flex', gap: '8px' }}>
-                        <button 
-                          onClick={() => openEditModal(ach)}
-                          style={{ background: 'none', border: 'none', color: '#6C757D', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'color 0.2s' }}
-                          title="Edit achievement"
-                          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
-                          onMouseLeave={(e) => e.currentTarget.style.color = '#6C757D'}
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(ach.id)}
-                          style={{ background: 'none', border: 'none', color: '#6C757D', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'color 0.2s' }}
-                          title="Delete achievement"
-                          onMouseEnter={(e) => e.currentTarget.style.color = '#DC3545'}
-                          onMouseLeave={(e) => e.currentTarget.style.color = '#6C757D'}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                      {isOwnProfile && (
+                        <div style={{ position: 'absolute', top: '24px', right: '24px', display: 'flex', gap: '8px' }}>
+                          <button 
+                            onClick={() => openEditModal(ach)}
+                            style={{ background: 'none', border: 'none', color: '#6C757D', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'color 0.2s' }}
+                            title="Edit achievement"
+                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#6C757D'}
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(ach.id)}
+                            style={{ background: 'none', border: 'none', color: '#6C757D', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'color 0.2s' }}
+                            title="Delete achievement"
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#DC3545'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#6C757D'}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
 
                       {/* Achievement Details */}
                       <div>

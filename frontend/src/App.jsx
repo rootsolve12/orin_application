@@ -65,6 +65,7 @@ export default function App() {
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
               <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+              <Route path="/u/:username" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
               <Route path="/saved-events" element={<ProtectedRoute><SavedEvents /></ProtectedRoute>} />
 
               {/* ── Certificate verification: public ── */}

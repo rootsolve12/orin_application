@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { logout } from '../firebase/auth';
+import { getAllEvents, getAllUsers } from '../firebase/firestore';
 
 export default function AppLayout({ children }) {
   const location = useLocation();
@@ -17,6 +18,51 @@ export default function AppLayout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(document.body.classList.contains('dark'));
+
+  const [universalSearchQuery, setUniversalSearchQuery] = useState('');
+  const [searchSource, setSearchSource] = useState({ events: [], users: [] });
+  const [searchResults, setSearchResults] = useState({ events: [], users: [] });
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searching, setSearching] = useState(false);
+
+  const handleSearchFocus = async () => {
+    setShowSearchDropdown(true);
+    if (searchSource.events.length === 0 && searchSource.users.length === 0) {
+      setSearching(true);
+      try {
+        const [evs, usrs] = await Promise.all([
+          getAllEvents(),
+          getAllUsers()
+        ]);
+        setSearchSource({ events: evs, users: usrs });
+      } catch (err) {
+        console.error("Error loading search sources:", err);
+      } finally {
+        setSearching(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!universalSearchQuery.trim()) {
+      setSearchResults({ events: [], users: [] });
+      return;
+    }
+    const q = universalSearchQuery.toLowerCase();
+    const filteredEvents = searchSource.events.filter(e => 
+      e.title?.toLowerCase().includes(q) || 
+      e.category?.toLowerCase().includes(q) ||
+      e.tags?.toLowerCase().includes(q)
+    ).slice(0, 5);
+
+    const filteredUsers = searchSource.users.filter(u => 
+      u.displayName?.toLowerCase().includes(q) || 
+      u.username?.toLowerCase().includes(q) ||
+      `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase().includes(q)
+    ).slice(0, 5);
+
+    setSearchResults({ events: filteredEvents, users: filteredUsers });
+  }, [universalSearchQuery, searchSource]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 1024);
@@ -221,12 +267,91 @@ export default function AppLayout({ children }) {
               <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-light)' }} />
               <input 
                 type="text" 
-                placeholder="Search opportunities..." 
+                placeholder="Search opportunities or users..." 
+                value={universalSearchQuery}
+                onChange={e => setUniversalSearchQuery(e.target.value)}
+                onFocus={handleSearchFocus}
+                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 style={{
                   width: '100%', padding: '12px 16px 12px 42px', borderRadius: '12px', border: '1px solid var(--border-light)',
                   background: 'var(--bg-light)', color: 'var(--text-light)', fontSize: '14px', outline: 'none', transition: 'background 0.3s, color 0.3s'
                 }}
               />
+
+              {showSearchDropdown && universalSearchQuery.trim() && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0,
+                  background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '14px',
+                  maxHeight: '360px', overflowY: 'auto', zIndex: 1000, marginTop: '8px',
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.1)', padding: '12px'
+                }}>
+                  {searching ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted-light)', fontSize: '13px' }}>Indexing opportunities & users...</div>
+                  ) : (
+                    <>
+                      {/* Events Section */}
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800', color: 'var(--muted-light)', padding: '4px 8px' }}>Opportunities</div>
+                        {searchResults.events.length === 0 ? (
+                          <div style={{ padding: '8px', fontSize: '12px', color: 'var(--muted-light)' }}>No matching events found.</div>
+                        ) : (
+                          searchResults.events.map(ev => (
+                            <div 
+                              key={ev.id}
+                              onClick={() => {
+                                navigate(`/event/${ev.id}`);
+                                setUniversalSearchQuery('');
+                              }}
+                              style={{
+                                padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px',
+                                transition: 'background 0.2s'
+                              }}
+                              onMouseOver={e => e.currentTarget.style.background = 'var(--bg-light)'}
+                              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)' }}>{ev.title}</span>
+                              <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>{ev.category} &bull; {ev.mode}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Users Section */}
+                      <div>
+                        <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '800', color: 'var(--muted-light)', padding: '4px 8px', borderTop: '1px solid var(--border-light)', paddingTop: '12px' }}>Users & Developers</div>
+                        {searchResults.users.length === 0 ? (
+                          <div style={{ padding: '8px', fontSize: '12px', color: 'var(--muted-light)' }}>No matching users found.</div>
+                        ) : (
+                          searchResults.users.map(usr => (
+                            <div 
+                              key={usr.id}
+                              onClick={() => {
+                                if (usr.username) navigate(`/u/${usr.username}`);
+                                else navigate(`/portfolio`);
+                                setUniversalSearchQuery('');
+                              }}
+                              style={{
+                                padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+                                transition: 'background 0.2s'
+                              }}
+                              onMouseOver={e => e.currentTarget.style.background = 'var(--bg-light)'}
+                              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: '800' }}>
+                                {(usr.displayName || 'U')[0].toUpperCase()}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-light)' }}>{usr.displayName}</span>
+                                <span style={{ fontSize: '11px', color: 'var(--muted-light)' }}>@{usr.username || 'user'} &bull; {usr.institution || 'Chennai'}</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
