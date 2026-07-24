@@ -171,7 +171,7 @@ export default function TeamWorkspace() {
     const textToSend = chatMessage;
     setChatMessage('');
     try {
-      await sendTeamMessage(team.id, currentUser.uid, userProfile.name || 'Anonymous', textToSend);
+      await sendTeamMessage(team.id, currentUser.uid, userProfile.displayName || currentUser?.displayName || 'Anonymous', textToSend);
     } catch (err) {
       console.error(err);
     }
@@ -187,7 +187,7 @@ export default function TeamWorkspace() {
       });
       const fileData = {
         name: file.name, url: downloadUrl, size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
-        uploaderName: userProfile.name || 'Team Member', uploadedAt: new Date().toISOString()
+        uploaderName: userProfile.displayName || currentUser?.displayName || 'Team Member', uploadedAt: new Date().toISOString()
       };
       await addTeamVaultFile(team.id, fileData);
       setUploadProgress(null);
@@ -448,10 +448,10 @@ export default function TeamWorkspace() {
               return (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: isLeader ? 'linear-gradient(135deg, var(--primary), var(--secondary))' : 'var(--bg-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLeader ? 'white' : 'var(--text-light)', border: isLeader ? 'none' : '1px solid var(--border-light)', fontWeight: '800', fontSize: '14px', boxShadow: isLeader ? '0 4px 12px rgba(109, 40, 217, 0.2)' : 'none' }}>
-                    {m.name ? m.name.charAt(0).toUpperCase() : 'M'}
+                    {m.displayName ? m.displayName.charAt(0).toUpperCase() : 'M'}
                   </div>
                   <div style={{ overflow: 'hidden' }}>
-                    <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name || 'Member'}</div>
+                    <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.displayName || 'Member'}</div>
                     <div style={{ fontSize: '11px', color: isLeader ? 'var(--primary)' : 'var(--muted-light)', fontWeight: isLeader ? '700' : '500' }}>
                       {isLeader ? 'Team Leader' : 'Developer'}
                     </div>
