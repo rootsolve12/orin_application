@@ -1,0 +1,306 @@
+:root {
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: #172b29;
+  background: #f4f7f5;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  border: 1px solid #c6d8ce;
+  background: #fff;
+  color: #174b37;
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-weight: 600;
+}
+button:hover {
+  background: #edf7ed;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+aside {
+  width: 230px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #dbe4de;
+  padding: 36px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.brand {
+  font-size: 42px;
+  color: #14563d;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: -2px;
+}
+.brand span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #788c80;
+}
+nav {
+  display: grid;
+  gap: 10px;
+  margin: 50px 0;
+}
+nav button {
+  text-align: left;
+  border: 0;
+  color: #64756c;
+}
+.active {
+  background: #e1f0e5;
+  color: #174b37;
+}
+aside small {
+  color: #718278;
+  line-height: 1.8;
+}
+main {
+  padding: 25px 48px;
+  width: 100%;
+  max-width: 1600px;
+  margin: auto;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 30px;
+}
+header > span {
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  color: #657e70;
+}
+header button {
+  margin-left: 8px;
+}
+.hero {
+  background: #153f31;
+  color: #fff;
+  padding: 42px;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hero:after {
+  content: "";
+  width: 220px;
+  height: 220px;
+  border: 40px solid #39745a;
+  border-radius: 50%;
+  position: absolute;
+  right: -70px;
+  top: 10px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.hero h1 {
+  font-size: clamp(32px, 4vw, 52px);
+  letter-spacing: -1.5px;
+  line-height: 1.12;
+  margin: 15px 0;
+}
+.hero p {
+  max-width: 620px;
+  color: #cadfcd;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  padding: 0;
+  max-width: none;
+  background: transparent;
+  border: 0;
+}
+.filters input {
+  flex: 1;
+}
+input,
+select,
+textarea {
+  border: 1px solid #c9d6ce;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  color: #203e30;
+  width: 100%;
+  min-width: 0;
+}
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+article {
+  padding: 25px;
+  background: #fff;
+  border: 1px solid #dee7df;
+  border-radius: 14px;
+  margin-bottom: 18px;
+}
+article h2 {
+  font-size: 21px;
+  line-height: 1.3;
+}
+article p {
+  color: #66796c;
+  line-height: 1.7;
+}
+article button {
+  margin-right: 8px;
+}
+.tag {
+  font-size: 10px;
+  color: #236344;
+  background: #e8f3e9;
+  padding: 6px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+form {
+  display: grid;
+  gap: 14px;
+  max-width: 650px;
+  margin: 24px 0;
+  padding: 25px;
+  background: #fff;
+  border: 1px solid #dce5de;
+  border-radius: 14px;
+}
+form h2 {
+  margin: 0 0 10px;
+}
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.notice {
+  padding: 15px;
+  background: #fff0cc;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #16382baa;
+  z-index: 10;
+  padding: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+}
+.dialog {
+  background: #f7faf7;
+  border-radius: 18px;
+  padding: 30px;
+  max-width: 850px;
+  width: 100%;
+}
+.dialog > .tag {
+  margin-left: 20px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+}
+code {
+  word-break: break-all;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #ddac3d;
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .shell {
+    display: block;
+  }
+  aside {
+    width: 100%;
+    height: auto;
+    position: static;
+    padding: 16px;
+  }
+  aside small {
+    display: none;
+  }
+  .brand {
+    font-size: 30px;
+  }
+  nav {
+    display: flex;
+    overflow: auto;
+    margin: 15px 0 0;
+    gap: 5px;
+  }
+  nav button {
+    white-space: nowrap;
+  }
+  main {
+    padding: 20px;
+  }
+  header {
+    align-items: flex-start;
+  }
+  header > span {
+    display: none;
+  }
+  .hero {
+    padding: 25px;
+  }
+  .filters {
+    flex-wrap: wrap;
+  }
+  .filters input {
+    flex-basis: 100%;
+  }
+  .filters select {
+    flex: 1;
+  }
+  .overlay {
+    padding: 10px;
+  }
+  .dialog {
+    padding: 18px;
+  }
+}

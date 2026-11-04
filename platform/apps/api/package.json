@@ -1,0 +1,20 @@
+{
+  "name": "@orin/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --import tsx --watch src/server.ts",
+    "start": "node --env-file-if-exists=../../.env --import tsx src/server.ts",
+    "migrate": "node --env-file-if-exists=../../.env --import tsx src/migrate.ts",
+    "bootstrap": "node --env-file-if-exists=../../.env --import tsx src/bootstrap.ts",
+    "worker": "node --env-file-if-exists=../../.env --import tsx src/mail-worker.ts"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "nodemailer": "^10.3.1",
+    "pg": "^8.16.0",
+    "zod": "^4.1.0"
+  }
+}

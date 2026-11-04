@@ -1,0 +1,5 @@
+node_modules
+apps/web/dist
+apps/mobile/.expo
+.local-data
+package-lock.json

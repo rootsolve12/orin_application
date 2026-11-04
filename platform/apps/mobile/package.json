@@ -1,0 +1,20 @@
+{
+  "name": "@orin/mobile",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "expo": "~54.0.0",
+    "expo-camera": "~17.0.10",
+    "expo-secure-store": "~15.0.7",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-qrcode-svg": "^6.3.54",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-svg": "^15.12.1"
+  }
+}
