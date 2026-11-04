@@ -1,0 +1,44 @@
+name: Orin independent platform
+on:
+  pull_request:
+    paths: ["platform/**", ".github/workflows/platform-ci.yml"]
+  push:
+    branches: ["main", "codex/campus-backend-foundation"]
+    paths: ["platform/**", ".github/workflows/platform-ci.yml"]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: orin
+          POSTGRES_PASSWORD: ci-only-test-password
+          POSTGRES_DB: orin_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U orin -d orin_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: platform/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+        env:
+          TEST_DATABASE_URL: postgres://orin:ci-only-test-password@localhost:5432/orin_test
+      - run: npm run build:web
+      - run: npx expo export --platform android --output-dir /tmp/orin-android --max-workers 2
+        working-directory: platform/apps/mobile
+      - run: npx expo export --platform ios --output-dir /tmp/orin-ios --max-workers 2
+        working-directory: platform/apps/mobile

@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Orin",
+    "slug": "orin-campus",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "org.orin.campus",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "org.orin.campus"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Orin to scan event attendance passes.",
+          "recordAudioAndroid": false
+        }
+      ]
+    ]
+  }
+}
