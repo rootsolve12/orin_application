@@ -444,6 +444,52 @@ test("campus journey against embedded PostgreSQL: signup through attendance, awa
       ).status,
       200,
     );
+    // Deterministically commit a reset between the login credential read and
+    // session creation. A login that verified the previous hash must fail.
+    const replacementHash = await hashPassword("Another changed password 789!");
+    const originalQuery = db.query.bind(db);
+    let resetDuringLogin = false;
+    db.query = (async (sql: string, values?: any[]) => {
+      const result = await originalQuery(sql, values);
+      if (
+        !resetDuringLogin &&
+        sql.includes("SELECT id,password_hash FROM campus.accounts")
+      ) {
+        resetDuringLogin = true;
+        await originalQuery(
+          "UPDATE campus.accounts SET password_hash=$1 WHERE id=$2",
+          [replacementHash, student.id],
+        );
+        await originalQuery("DELETE FROM campus.sessions WHERE user_id=$1", [
+          student.id,
+        ]);
+      }
+      return result;
+    }) as typeof db.query;
+    try {
+      assert.equal(
+        (
+          await req("/v1/auth/login", "POST", {
+            email: "student@pilot.test",
+            password: newPassword,
+          })
+        ).status,
+        401,
+      );
+      assert.equal(
+        Number(
+          (
+            await originalQuery(
+              "SELECT count(*) AS n FROM campus.sessions WHERE user_id=$1",
+              [student.id],
+            )
+          ).rows[0].n,
+        ),
+        0,
+      );
+    } finally {
+      db.query = originalQuery;
+    }
     // Partner access is an explicit event allowlist, never a user-supplied college claim.
     const partner = randomUUID();
     await db.query(

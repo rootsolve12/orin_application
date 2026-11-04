@@ -227,12 +227,10 @@ export function createApp(
       if (inserted.rows.length)
         await emailChallenge(c, id, data.email, "verify");
     });
-    res
-      .status(202)
-      .json({
-        message:
-          "If this address can be registered, a verification email will arrive.",
-      });
+    res.status(202).json({
+      message:
+        "If this address can be registered, a verification email will arrive.",
+    });
   });
   app.post("/v1/auth/login", async (req, res) => {
     const data = credentials.parse(req.body);
@@ -249,12 +247,24 @@ export function createApp(
       a?.password_hash || dummy,
     );
     if (!a || !valid) throw new Failure(401, "Invalid credentials");
-    const secret = token();
-    await db.query(
-      "INSERT INTO campus.sessions(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '7 days')",
-      [digest(secret), a.id],
-    );
-    res.json({ token: secret, actor: await actorFor(db, a.id) });
+    const result = await transaction(db, async (c) => {
+      // Serialize session creation with password resets. Recheck the exact hash
+      // verified above: a reset may have committed while the KDF was running.
+      const current = (
+        await c.query(
+          "SELECT id FROM campus.accounts WHERE id=$1 AND password_hash=$2 FOR UPDATE",
+          [a.id, a.password_hash],
+        )
+      ).rows[0];
+      if (!current) throw new Failure(401, "Invalid credentials");
+      const secret = token();
+      await c.query(
+        "INSERT INTO campus.sessions(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '7 days')",
+        [digest(secret), a.id],
+      );
+      return { token: secret, actor: await actorFor(c, a.id) };
+    });
+    res.json(result);
   });
   app.post("/v1/auth/logout", async (req, res) => {
     actor(req);
@@ -1039,15 +1049,13 @@ export function createApp(
   });
   app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
     if (error instanceof z.ZodError) {
-      res
-        .status(400)
-        .json({
-          error: "Invalid request",
-          details: error.issues.map((i) => ({
-            path: i.path,
-            message: i.message,
-          })),
-        });
+      res.status(400).json({
+        error: "Invalid request",
+        details: error.issues.map((i) => ({
+          path: i.path,
+          message: i.message,
+        })),
+      });
       return;
     }
     if (error.code === "23505") {
@@ -1066,11 +1074,9 @@ export function createApp(
           : 500;
     if (status === 500)
       console.error("Request failed:", error.code || error.name);
-    res
-      .status(status)
-      .json({
-        error: status === 500 ? "Internal server error" : error.message,
-      });
+    res.status(status).json({
+      error: status === 500 ? "Internal server error" : error.message,
+    });
   });
   return app;
 }
